@@ -10,6 +10,16 @@
 - **Retrieval adds moving parts for no gain.** Chunking, embeddings, a vector store and tuning are extra work and extra failure modes, and they make output harder to explain. With injection, what the model saw is exactly what we selected.
 - **Brand voice must not be chunked away.** Tone-of-voice rules work as a whole document. Similarity search can return fragments that miss them.
 
+## Retrieve vs inject
+
+| Criterion | Retrieve (RAG) | Inject selected documents (chosen) |
+|---|---|---|
+| Fit to corpus size | Pays off when the corpus exceeds the context window. Ours does not. | Two small knowledge bases fit in context. |
+| Build effort in a 2-day MVP | Chunking, embeddings, a vector store and tuning. | Read files and filter on frontmatter. |
+| Traceability | The model sees whichever chunks scored highest, which is hard to explain. | The prompt contains exactly the documents we selected, so we can log and inspect them. |
+| Brand-voice fidelity | Chunks can drop part of the voice rules. | Whole documents stay intact. |
+| Dependencies and cost | Embedding model, vector store, extra API calls. This conflicts with WON'T-02 in `project_structure.md`. | None beyond the one LLM call per draft. |
+
 ## How documents are selected instead
 
 Selection is deterministic and based on frontmatter metadata (`type`, `tags`), implemented in `src/knowledge_base.py` (card 07). For example: always load the brand-voice document, plus competitor documents tagged for the topic of the brief.
