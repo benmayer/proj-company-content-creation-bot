@@ -12,7 +12,7 @@ Scope, Must IDs and the Won't list live in [`project_structure.md`](project_stru
 
 - Python 3.8+, dependencies in `requirements.txt`
 - LLM provider: _TBD (OpenAI or Anthropic) — update this line once decided_
-- Markdown parsing: `markdown` / `mistune` (or similar)
+- Markdown parsing: `markdown` / `mistune` (or similar); YAML frontmatter via `PyYAML`
 - Secrets in `.env` (never committed). Expected vars: _TBD — list each key here when added_
 
 ```bash
@@ -37,7 +37,7 @@ python src/main.py
 
 ## Conventions
 
-- Knowledge-base content is **markdown only**, in the right folder (`primary/` = about the company, `secondary/` = about the market). `snake_case.md` filenames.
+- Knowledge-base content is **markdown with OKF v0.2 frontmatter** (`type` required; `title`, `description`, `tags` recommended — see [`knowledge_base/README.md`](knowledge_base/README.md)), in the right folder (`primary/` = about the company, `secondary/` = about the market). `snake_case.md` filenames. No RAG: selected docs are injected into the prompt, see [`rag_decision.md`](rag_decision.md).
 - Python: `snake_case` modules and functions, type hints on public functions, no new top-level folders without agreeing first.
 - Prompts live in templates, not as inline strings scattered through the code.
 - All LLM calls go through `llm_integration.py` so the provider can be swapped in one place.
