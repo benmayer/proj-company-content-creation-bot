@@ -21,4 +21,4 @@ Body in markdown.
 
 `type` is required. `title`, `description` and `tags` are recommended; `tags` is a YAML list. Other keys are allowed and must be preserved.
 
-The set of `type` values is agreed when the knowledge bases are built (cards 04 and 05) and recorded here.
+Primary documents currently use these `type` values: `company_profile`, `brand_voice`, `promotion_pattern`, `editorial_guardrails`, and `past_content_examples`. Secondary-document types will be added when the industry knowledge base is built (card 05).
