@@ -21,4 +21,10 @@ Body in markdown.
 
 `type` is required. `title`, `description` and `tags` are recommended; `tags` is a YAML list. Other keys are allowed and must be preserved.
 
-The set of `type` values is agreed when the knowledge bases are built (cards 04 and 05) and recorded here.
+## Secondary KB conventions (card 05)
+
+- Every file in `secondary/` carries `source_kind: secondary` plus `retrieved` (date) and `confidence`. The loader can tell the two KBs apart by folder and by this key.
+- `type` values used so far in `secondary/`: `market_trends`, `competitor_analysis`, `customer_feedback`, `source_register`.
+- `secondary/sources.md` records provenance for all secondary content. Ryanair's own facts (results, brand quotes) belong in `primary/`, not here.
+
+Primary `type` values are recorded here when card 04 is done.
