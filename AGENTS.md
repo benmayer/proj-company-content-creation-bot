@@ -48,7 +48,7 @@ python src/main.py
 - **One Trello card at a time.** Paste the card (title, Must ID, verify step) into the agent prompt.
 - Trello board: https://trello.com/b/6Br1zrqp/ryanairproject. Kanban flow **Backlog → Ready → In progress (WIP: 2) → Review → Done**. Don't pull a third card into In progress.
 - Commit small, with messages that reference the card number (e.g. `03 — add KB loader`).
-- Claude Code: create tickets with the `/create-ticket` skill (`.claude/skills/create-ticket/`). Trello is connected via the `trello` MCP server; if its tools fail, re-authenticate with `/mcp`.
+- Claude Code: create tickets with the `/create-ticket` skill (`.claude/skills/create-ticket/`). Trello is connected via the `trello` MCP server, defined in the committed `.mcp.json`. Each person supplies their own credentials: put `TRELLO_API_KEY` and `TRELLO_TOKEN` in your `.env` (see `.env.example`; get them at https://trello.com/power-ups/admin), then start Claude Code with `set -a; source .env; set +a; claude`, because Claude Code only reads variables from the launching shell, not from `.env`. On first launch it asks you to approve the project server. If its tools fail, check the variables are set in that shell, then run `/mcp`.
 - No test or lint tooling exists yet — don't claim a check passed unless you actually ran it.
 
 ## Definition of Done (same as the Kanban board)
