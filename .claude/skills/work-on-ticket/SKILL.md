@@ -13,7 +13,7 @@ Use this skill when asked to work on, implement, complete, or progress an existi
    - Before starting a ticket from **Backlog** or **Ready**, inspect the board for cards already in **In progress**.
    - Resume and finish those cards first, one at a time, using the same ticket-reading, readiness, implementation, and verification rules below.
    - Do not pull a new backlog/Ready ticket while an existing In progress card can be completed or moved to **Review**.
-   - After each In progress card passes its Deliverables and Definition of Done checks, move it to **Review**. Never move it directly to **Done**.
+   - After each In progress card passes its Deliverables and Definition of Done checks, attach its PR to the **Github PR** field and move it to **Review** (see step 8). Never move it directly to **Done**.
    - If an In progress card is blocked, follow the blocked-ticket procedure and stop for user feedback rather than starting another backlog ticket.
 
 2. **Read the ticket.**
@@ -50,7 +50,10 @@ Use this skill when asked to work on, implement, complete, or progress an existi
    - Run the relevant tests or verification and record the result.
    - Do not move the card to Review if any deliverable or required Definition of Done condition is incomplete.
 
-8. **When finished, move to Review.**
+8. **When finished, attach the PR and move to Review.**
+   - Make sure the ticket branch has a GitHub pull request against the base branch (open one with `gh pr create` if none exists yet). Reference the card number in the PR title.
+   - Set the card's **Github PR** custom field (text) to the PR URL using `update_card_custom_field`. Look up the field id with `get_board_custom_fields` rather than hard-coding it. Do this before moving the card.
+   - Do not move the card to Review if there is no PR URL to attach. Ask the user instead.
    - Move the completed card to the list named **Review**.
    - Report what was completed, how it was verified, and any remaining caveats.
    - Stop and wait for the user's green light. Do not continue to Done automatically.
