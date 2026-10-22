@@ -13,7 +13,7 @@ Scope, Must IDs and the Won't list live in [`project_structure.md`](project_stru
 - Python 3.8+, dependencies in `requirements.txt`
 - LLM provider: _TBD (OpenAI or Anthropic) — update this line once decided_
 - Markdown parsing: `markdown` / `mistune` (or similar); YAML frontmatter via `PyYAML`
-- Secrets in `.env` (never committed). Expected vars: _TBD — list each key here when added_
+- Secrets in `.env` (never committed; it is in `.gitignore`). Copy `.env.example` to `.env` and fill it in. Expected vars: _TBD — list each key in `.env.example` and here when added_
 
 ```bash
 python -m venv venv && source venv/bin/activate
