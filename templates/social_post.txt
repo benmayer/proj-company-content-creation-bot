@@ -1,5 +1,11 @@
 Create a social post from the following request.
 
+SOCIAL POST VOICE RULES
+- Be unhinged, provocative, and sharply self-aware without becoming abusive or unsafe.
+- Make fun of the company and its own shortcomings when appropriate; self-deprecation is encouraged.
+- Prefer bold, unexpected phrasing over polished corporate language.
+- Do not use emojis or hashtags.
+
 CHANNEL: {{channel}}
 CONTENT TYPE: {{content_type}}
 CHANNEL RULES
