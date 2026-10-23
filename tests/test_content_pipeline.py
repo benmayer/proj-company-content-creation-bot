@@ -87,7 +87,7 @@ class SelfLearningTests(unittest.TestCase):
         self.addCleanup(patcher.stop)
         self.knowledge_base = KnowledgeBase.load()
         self.request = ContentRequest(
-            "social_post", "flights", "reply: summer sale", channel="X", post_type="reply"
+            "reply", "flights", "reply: summer sale", channel="X"
         )
 
     def _pipeline(self, directory: str) -> ContentPipeline:
@@ -115,8 +115,8 @@ class SelfLearningTests(unittest.TestCase):
             pipeline = self._pipeline(directory)
             pipeline.record_decline(self.request, "Too formal for X.")
             context = pipeline.monitor(self.request)
-            other_channel = ContentRequest("social_post", "flights", "reply: summer sale", channel="LinkedIn", post_type="reply")
-            other_type = ContentRequest("social_post", "flights", "meme: summer sale", channel="X", post_type="meme")
+            other_channel = ContentRequest("reply", "flights", "reply: summer sale", channel="LinkedIn")
+            other_type = ContentRequest("meme", "flights", "meme: summer sale", channel="X")
             self.assertIn("No learned feedback yet", pipeline.brief(other_channel, context))
             self.assertIn("No learned feedback yet", pipeline.brief(other_type, context))
             self.assertIn("Too formal for X.", pipeline.brief(self.request, context))

@@ -11,6 +11,7 @@ from src.feedback_store import APPROVED, DECLINED, FeedbackEvent, FeedbackStore,
 from src.knowledge_base import KnowledgeBase, SelectedContext, SelectedDocument
 from src.llm_integration import generate_draft
 from src.prompt_templates import render_prompt
+from src.channel_profiles import content_type_rules, get_channel_profile
 
 PathLike = Union[str, Path]
 ApprovalCallback = Callable[[str], bool]
@@ -33,13 +34,6 @@ class ContentRequest:
     original_content: str = ""
     asset_name: str = ""
     asset_text: str = ""
-    # User-facing type (reply, press release, ...). Learned feedback is keyed on
-    # channel + this value, falling back to the template name when it is empty.
-    post_type: str = ""
-
-    @property
-    def feedback_type(self) -> str:
-        return self.post_type or self.content_type
 
 
 @dataclass(frozen=True)
@@ -96,11 +90,13 @@ class ContentPipeline:
 
     def monitor(self, request: ContentRequest) -> SelectedContext:
         """Select deterministic context for the request."""
-        return self.document().select(request.topic, channel=request.channel)
+        return self.document().select(
+            request.topic, channel=request.channel, content_type=request.content_type
+        )
 
     def learned_feedback(self, request: ContentRequest) -> LearnedFeedback:
         """Select past approvals and decline reasons for the same channel and type."""
-        return self.feedback_store.select(request.channel, request.feedback_type)
+        return self.feedback_store.select(request.channel, request.content_type)
 
     def brief(self, request: ContentRequest, context: SelectedContext, feedback: str = "") -> str:
         """Render the complete provider-neutral prompt for one iteration."""
@@ -122,7 +118,11 @@ class ContentPipeline:
             primary_context=_render_documents(context.primary),
             secondary_context=_render_documents(context.secondary),
             voice_rules=_primary_voice_rules(context),
-            format_limits="Respect the requested channel and template format. Keep the result concise and reviewable.",
+            format_limits=(
+                f"{get_channel_profile(request.channel).format} "
+                f"{content_type_rules(request.content_type)} Keep the result concise and reviewable."
+            ),
+            channel=request.channel,
             learned_feedback=self.learned_feedback(request).render(),
         )
 
@@ -155,7 +155,7 @@ class ContentPipeline:
         return self.feedback_store.record(
             outcome,
             channel=request.channel,
-            content_type=request.feedback_type,
+            content_type=request.content_type,
             product=request.product,
             topic=request.topic,
             draft=draft,

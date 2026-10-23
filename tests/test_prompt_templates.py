@@ -14,7 +14,10 @@ from src.prompt_templates import (
 
 class PromptTemplateTests(unittest.TestCase):
     def test_supported_templates_render_complete_prompts(self) -> None:
-        self.assertEqual(available_content_types(), ("campaign_brief", "social_post"))
+        self.assertEqual(
+            available_content_types(),
+            ("campaign_brief", "meme", "post_update", "press_release", "reply", "social_post"),
+        )
         for content_type in available_content_types():
             prompt = render_prompt(
                 content_type,
@@ -28,6 +31,25 @@ class PromptTemplateTests(unittest.TestCase):
             self.assertIn("Approved company facts.", prompt)
             self.assertIn("Industry context only.", prompt)
             self.assertIn("human review", prompt.lower())
+
+    def test_all_channel_and_content_type_combinations_render(self) -> None:
+        from src.channel_profiles import CHANNELS, CONTENT_TYPES
+
+        for channel in CHANNELS:
+            for content_type in CONTENT_TYPES:
+                with self.subTest(channel=channel, content_type=content_type):
+                    prompt = render_prompt(
+                        content_type,
+                        request="Announce a sourced route update.",
+                        primary_context="Company facts.",
+                        secondary_context="Industry context.",
+                        voice_rules="Approved voice.",
+                        format_limits="Keep it concise.",
+                        channel=channel,
+                    )
+                    self.assertNotIn("{{", prompt)
+                    self.assertIn(channel, prompt)
+                    self.assertIn(content_type.replace("_", " "), prompt)
 
     def test_adding_one_template_file_supports_a_new_content_type(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -64,6 +86,17 @@ class PromptTemplateTests(unittest.TestCase):
             (root / "broken.txt").write_text("{{request}} {{missing}}", encoding="utf-8")
             with self.assertRaisesRegex(PromptTemplateError, "missing values"):
                 render_template("broken", {"request": "A request"}, templates_dir=root)
+
+
+class LearnedFeedbackTemplateTests(unittest.TestCase):
+    def test_every_template_renders_learned_feedback(self) -> None:
+        for content_type in available_content_types():
+            with self.subTest(content_type=content_type):
+                prompt = render_prompt(
+                    content_type, "request", "primary", "secondary", "voice", "limits",
+                    learned_feedback="LEARNED-MARKER",
+                )
+                self.assertIn("LEARNED-MARKER", prompt)
 
 
 if __name__ == "__main__":

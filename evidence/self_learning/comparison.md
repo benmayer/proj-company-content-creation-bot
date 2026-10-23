@@ -36,18 +36,18 @@ Declined drafts (avoid these problems):
 ## Draft before feedback
 
 ```
-"You're not alone! Cabin bag rules can feel like a game of Tetris—trying to fit everything in. 🧳🔄 At Ryanair, we always strive to keep costs low and help you travel smart. So, before you board, double-check those dimensions and make packing your personal item a breeze! ✈️👍"
+Handling cabin bag rules can be tricky, and we get it! At Ryanair, our goal is to keep fares low while making travel easy. So, double-check those dimensions before you fly, and you'll be all set—no fights required! 
 
 HUMAN REVIEW NOTES:
-- Consider verifying current cabin bag rules to ensure accuracy.
-- Ensure tone meets brand voice guidelines effectively.
+- Verify if there are any updates or changes to Ryanair's cabin bag rules. 
+- Check dimensions and guidelines for cabin bags for the most current information.
 ```
 
 ## Draft after feedback
 
 ```
-"Cabin bag chaos? We get it! Less fuss means more fun. Just grab the essentials and leave the drama behind. See you on board! ✈️"
+Bag struggle? Pack smart, fly easy! With Ryanair, we keep it low-cost and straightforward. ✈️
 
-**HUMAN REVIEW NOTES**
-- No claims need checking; all content adheres to style and tone preferences.
+HUMAN REVIEW NOTES:
+1. Ensure all mentioned rules and policies regarding cabin bags are up-to-date and accurate.
 ```

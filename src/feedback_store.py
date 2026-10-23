@@ -87,7 +87,7 @@ def _example_text(draft: str) -> str:
 
 
 def _key(value: str) -> str:
-    return value.strip().casefold()
+    return value.strip().casefold().replace("_", " ")
 
 
 class FileBackend:

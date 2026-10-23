@@ -8,13 +8,13 @@ from typing import Any, Callable, Dict, Optional
 import streamlit as st
 
 from src.content_pipeline import ContentPipeline, ContentRequest, PipelineError
+from src.channel_profiles import CHANNELS, CONTENT_TYPES
 from src.feedback_store import FeedbackStoreError
 from src.llm_integration import LLMError, generate_draft
 from src.knowledge_base import SelectedContext
 
 
-CHANNELS = ("LinkedIn", "Instagram", "X", "internal Slack")
-CONTENT_TYPES = ("reply", "press release", "post update", "meme")
+CONTENT_TYPE_LABELS = {"press_release": "press release", "post_update": "post update"}
 
 
 def _mock_generator(prompt: str, client: object = None) -> str:
@@ -47,14 +47,13 @@ def _read_asset(uploaded_file: Any) -> tuple[str, str]:
 def _request_from_form(channel: str, content_type: str, product: str, topic: str, original: str, asset: Any) -> ContentRequest:
     asset_name, asset_text = _read_asset(asset)
     return ContentRequest(
-        content_type="social_post",
+        content_type=content_type.replace(" ", "_"),
         product=product,
         topic=f"{content_type}: {topic}",
         channel=channel,
         original_content=original,
         asset_name=asset_name,
         asset_text=asset_text,
-        post_type=content_type,
     )
 
 
@@ -139,7 +138,9 @@ def main() -> None:
     with st.sidebar:
         st.header("Request")
         channel = st.selectbox("Channel", CHANNELS)
-        content_type = st.selectbox("Type", CONTENT_TYPES)
+        content_type = st.selectbox(
+            "Type", CONTENT_TYPES, format_func=lambda value: CONTENT_TYPE_LABELS.get(value, value)
+        )
         product = st.text_input("Product or service", placeholder="e.g. flights")
         topic = st.text_area("Topic", placeholder="What should the content communicate?")
         original = ""

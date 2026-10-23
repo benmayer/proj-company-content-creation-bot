@@ -47,6 +47,12 @@ class KnowledgeBaseSelectionTests(unittest.TestCase):
         b = self.kb.select("baggage fees", "x")
         self.assertEqual(a.render(), b.render())
 
+    def test_channel_and_content_type_widen_matching_context(self) -> None:
+        press_release = self.kb.select("summer travel", "LinkedIn", "press_release")
+        reply = self.kb.select("summer travel", "X", "reply")
+        self.assertIn("promotion_pattern", {i.document.metadata["type"] for i in press_release.primary})
+        self.assertIn("competitor_analysis", {i.document.metadata["type"] for i in reply.secondary})
+
 
 if __name__ == "__main__":
     unittest.main()

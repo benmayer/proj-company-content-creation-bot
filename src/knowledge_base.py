@@ -114,8 +114,13 @@ class KnowledgeBase:
             secondary=ingest_directory(base / SECONDARY),
         )
 
-    def select(self, topic: str, channel: Optional[str] = None) -> SelectedContext:
-        """Select context for a topic, optionally widened by the target channel.
+    def select(
+        self,
+        topic: str,
+        channel: Optional[str] = None,
+        content_type: Optional[str] = None,
+    ) -> SelectedContext:
+        """Select context for a topic, channel and content type.
 
         Primary: the always-needed brand and guardrail documents, plus any
         other primary document matching the topic or channel. Secondary: the
@@ -126,6 +131,13 @@ class KnowledgeBase:
 
         topic_words = _words(topic)
         match_words = topic_words | _words(channel or "")
+        type_words = {
+            "reply": "customer feedback competitor response",
+            "press_release": "announcement route promotion schedule investment",
+            "post_update": "update route promotion customer experience",
+            "meme": "social humour travel passenger",
+        }.get((content_type or "").strip().lower().replace(" ", "_"), "")
+        match_words |= _words(type_words)
 
         primary: List[SelectedDocument] = []
         for doc in self.primary:
@@ -136,7 +148,7 @@ class KnowledgeBase:
 
         candidates = [d for d in self.secondary if d.metadata.get("type") != "source_register"]
         ranked = sorted(
-            ((_score(d, topic_words), d) for d in candidates),
+            ((_score(d, topic_words | _words(type_words)), d) for d in candidates),
             key=lambda pair: (-pair[0], str(pair[1].source_path)),
         )
         secondary = [

@@ -1,0 +1,28 @@
+Create a harmless travel meme caption.
+
+CHANNEL: {{channel}}
+CONTENT TYPE: {{content_type}}
+CHANNEL RULES
+{{channel_rules}}
+CONTENT-TYPE RULES
+{{content_type_rules}}
+
+REQUEST
+{{request}}
+
+PRIMARY CONTEXT — company facts and brand guidance
+{{primary_context}}
+
+SECONDARY CONTEXT — industry background, not company fact
+{{secondary_context}}
+
+VOICE RULES
+{{voice_rules}}
+
+LEARNED FEEDBACK — reviewer preferences, NOT company facts
+{{learned_feedback}}
+
+FORMAT LIMITS
+{{format_limits}}
+
+Keep it concise and safe. End with HUMAN REVIEW NOTES listing claims that need checking.

@@ -7,6 +7,8 @@ from pathlib import Path
 import re
 from typing import Mapping, Tuple, Union
 
+from src.channel_profiles import content_type_label, content_type_rules, get_channel_profile
+
 
 PathLike = Union[str, Path]
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -70,6 +72,7 @@ def render_prompt(
     voice_rules: str,
     format_limits: str,
     templates_dir: PathLike = DEFAULT_TEMPLATES_DIR,
+    channel: str = "LinkedIn",
     learned_feedback: str = NO_LEARNED_FEEDBACK,
 ) -> str:
     """Render a complete prompt for one content type.
@@ -87,6 +90,7 @@ def render_prompt(
     root = Path(templates_dir)
     system = _read_template(root / "system.txt")
     content_template = _read_template(root / f"{content_type}.txt")
+    profile = get_channel_profile(channel)
     values = {
         "request": request,
         "primary_context": primary_context,
@@ -94,6 +98,10 @@ def render_prompt(
         "voice_rules": voice_rules,
         "format_limits": format_limits,
         "learned_feedback": learned_feedback,
+        "channel": profile.name,
+        "channel_rules": f"Tone: {profile.tone}\nFormat: {profile.format}\nKB source: {profile.source}",
+        "content_type": content_type_label(content_type),
+        "content_type_rules": content_type_rules(content_type),
     }
     rendered_content = _render_text(content_template, values, f"{content_type}.txt")
     return "\n\n".join((system, rendered_content)).strip()
