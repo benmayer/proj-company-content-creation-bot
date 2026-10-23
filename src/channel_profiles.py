@@ -28,13 +28,13 @@ _PROFILES: Dict[str, ChannelProfile] = {
     ),
     "instagram": ChannelProfile(
         "Instagram",
-        "Playful, visual-first and self-aware, with a concise punchline rather than a dense explanation.",
-        "Write a short caption with one recognisable travel or flight moment and restrained emoji only when it adds meaning.",
+        "Lowercase, provocative, visual-first and self-aware; make the punchline land immediately.",
+        "Write one short sentence, usually 3–12 words. Use loose grammar, no emojis, no hashtags and no explanation.",
     ),
     "x": ChannelProfile(
         "X",
-        "Fast, direct and topical; sound like a sharp reply or observation without treating rumours as facts.",
-        "Lead with the point, keep the wording compact, and make the connection to Ryanair or the passenger experience clear.",
+        "Lowercase, blunt, provocative and topical; sound like a sharp reply, not customer-service copy.",
+        "Write one sharp sentence, usually 3–12 words. Use loose grammar, no emojis, no hashtags and no automatic apology.",
     ),
     "internal slack": ChannelProfile(
         "internal Slack",

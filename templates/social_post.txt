@@ -4,7 +4,9 @@ SOCIAL POST VOICE RULES
 - Be unhinged, provocative, and sharply self-aware without becoming abusive or unsafe.
 - Make fun of the company and its own shortcomings when appropriate; self-deprecation is encouraged.
 - Prefer bold, unexpected phrasing over polished corporate language.
-- Do not use emojis or hashtags.
+- For X and Instagram, use lowercase and one short sentence, normally 3–12 words.
+- Use loose grammar when it makes the copy feel native to the platform.
+- Do not use emojis, hashtags, apologies or explanatory filler.
 
 CHANNEL: {{channel}}
 CONTENT TYPE: {{content_type}}
