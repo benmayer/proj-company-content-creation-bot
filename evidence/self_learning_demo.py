@@ -16,8 +16,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from src.content_pipeline import ContentPipeline, ContentRequest  # noqa: E402
-from src.feedback_store import FeedbackStore, FileBackend, clean_draft  # noqa: E402
-from src.llm_integration import generate_draft  # noqa: E402
+from src.feedback_store import FeedbackStore, FileBackend  # noqa: E402
 
 OUTPUT = ROOT / "evidence" / "self_learning" / "comparison.md"
 
@@ -44,14 +43,14 @@ def main() -> None:
         context = pipeline.monitor(REQUEST)
 
         before_prompt = pipeline.brief(REQUEST, context)
-        before_draft = clean_draft(generate_draft(before_prompt))
+        before_draft = pipeline.draft(REQUEST, context)
 
-        store.record("approved", REQUEST.channel, REQUEST.content_type, REQUEST.product, REQUEST.topic, SEEDED_APPROVED)
-        store.record("declined", REQUEST.channel, REQUEST.content_type, REQUEST.product, REQUEST.topic,
+        store.record("approved", REQUEST.channel, REQUEST.content_type, REQUEST.topic, SEEDED_APPROVED)
+        store.record("declined", REQUEST.channel, REQUEST.content_type, REQUEST.topic,
                      "Dear valued customer, we sincerely apologise for any inconvenience ...", SEEDED_DECLINE_REASON)
 
         after_prompt = pipeline.brief(REQUEST, context)
-        after_draft = clean_draft(generate_draft(after_prompt))
+        after_draft = pipeline.draft(REQUEST, context)
 
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(

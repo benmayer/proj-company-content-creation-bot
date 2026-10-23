@@ -4,11 +4,18 @@ A small product that creates public company posts, including the tone of voice a
 ## Local UI
 
 The local front end uses Streamlit and keeps the request form beside the draft
-review panel. It supports LinkedIn, Instagram, X, and internal Slack; reply,
-press release, post update, and meme types; source-document visibility; feedback
-iterations; and approval-gated saving to `outputs/`. Channel profiles are
-derived from the primary brand-voice knowledge base, while content templates
-remain composable across all four channels.
+review panel. Each channel offers its own content types:
+
+| Channel | Types |
+|---|---|
+| LinkedIn | regular post, press release |
+| Instagram | regular post, reply to post, meme |
+| X | regular post, reply to post, meme |
+| internal Slack | press release (internal), regular post, meme |
+
+The voice rules for each channel and type, and real past examples, live as Markdown
+in `knowledge_base/primary/` (see [its README](knowledge_base/README.md)); edits apply
+on the next draft without a restart.
 
 ```bash
 python3 -m venv .venv
@@ -16,15 +23,24 @@ python3 -m venv .venv
 .venv/bin/python -m streamlit run app.py
 ```
 
-Set `OPENAI_API_KEY` in `.env` first. A reply only needs the original message;
-the other types also need a product and topic. Nothing is saved until **Approve + save** is selected. Uploaded assets remain in
-memory and are not committed.
+Set `OPENAI_API_KEY` and `LLM_MODEL` in `.env` first. Every type needs only a topic,
+except **reply to post**: paste the post's text, upload a screenshot of it, or both.
+Links are not opened, so a link on its own is refused. Nothing is saved until
+**Approve + save** is selected. Screenshots stay in memory and are not committed.
+
+**Model:** `evidence/voice_check.py` drafts the same 12 requests through the pipeline
+and through a generic one-line prompt, and writes `evidence/voice/comparison_<model>.md`.
+On those runs `gpt-5.4-mini` followed the rules better than `gpt-4o-mini` (no invented
+facts in the press release, sharper replies), so we recommend `LLM_MODEL=gpt-5.4-mini`.
+Third-party price lists give $0.75 per million input and $4.50 per million output tokens
+for it (check OpenAI's pricing page); a draft is about 3,000 input tokens, so roughly
+$0.003 per draft before screenshots.
 
 The command-line entry point can be run from the project directory with:
 
 ```bash
-.venv/bin/python -m src.main --content-type social_post --product flights \
-  --topic "a weekend getaway" --channel Instagram
+.venv/bin/python -m src.main --content-type post --topic "a weekend getaway" --channel Instagram
+.venv/bin/python -m src.main --content-type reply --channel X --screenshot post.png
 ```
 
 Running `src/main.py` directly from an IDE is also supported.

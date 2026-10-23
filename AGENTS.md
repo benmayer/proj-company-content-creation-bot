@@ -34,7 +34,8 @@ python -m unittest tests.test_llm_integration tests.test_knowledge_base   # test
 | `src/content_pipeline.py` | document → monitor → brief → publish → iterate |
 | `src/feedback_store.py` | Approved/declined drafts in `outputs/feedback.jsonl` (or `FEEDBACK_STORE_PATH`), selected per channel + type as learned feedback |
 | `src/llm_integration.py` | The only module that calls the LLM API |
-| `evidence/` | Graded proof: `self_learning_demo.py` and `self_learning/comparison.md` (before/after feedback) |
+| `src/channel_profiles.py` | Looks up channel / content-type voice rules and past examples from `knowledge_base/primary/` |
+| `evidence/` | Graded proof: `self_learning_demo.py` and `self_learning/comparison.md` (before/after feedback); `voice_check.py` and `voice/comparison_<model>.md` (pipeline vs generic prompt) |
 | `src/main.py` | CLI entry point |
 | `knowledge_base/primary/` | Company docs (brand guidelines, product specs, `past_content/`) |
 | `knowledge_base/secondary/` | Industry research (market trends, competitor analysis) |
@@ -59,7 +60,7 @@ python -m unittest tests.test_llm_integration tests.test_knowledge_base   # test
 
 ## UI
 
-The local front end uses Streamlit. Run it with `streamlit run app.py`; use the sidebar to choose the channel/type, generate a draft, request feedback, or approve and save it. Uploaded assets stay in memory and are not committed.
+The local front end uses Streamlit. Run it with `streamlit run app.py`; use the sidebar to choose the channel and one of its content types, generate a draft, request feedback, or approve and save it. Replies take the post's text and/or a screenshot; screenshots stay in memory and are not committed.
 
 ## Definition of Done (same as the Kanban board)
 
