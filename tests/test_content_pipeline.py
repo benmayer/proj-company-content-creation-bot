@@ -62,6 +62,14 @@ class ContentPipelineTests(unittest.TestCase):
                 pipeline.run(self.request, approve=lambda _draft: False)
             self.assertEqual(list(Path(temporary_directory).iterdir()), [])
 
+    def test_decline_is_recorded_without_saving_an_approved_draft(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            pipeline = ContentPipeline(self.knowledge_base, temporary_directory, lambda _prompt, client=None: "draft")
+            path = pipeline.record_decline(self.request, "Needs a different angle.")
+            self.assertEqual(path.name, "declined.jsonl")
+            self.assertIn("Needs a different angle.", path.read_text(encoding="utf-8"))
+            self.assertFalse((Path(temporary_directory) / "20260101T000000Z_social_post.md").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

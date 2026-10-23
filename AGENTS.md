@@ -27,12 +27,13 @@ python -m unittest tests.test_llm_integration tests.test_knowledge_base   # test
 
 | Path | What lives there |
 |---|---|
+| `app.py` | Streamlit local UI |
 | `src/document_processor.py` | Markdown ingestion and parsing |
 | `src/knowledge_base.py` | Loads / selects from primary and secondary KBs |
 | `src/prompt_templates.py` + `templates/` | Reusable prompt templates (style variants) |
 | `src/content_pipeline.py` | document → monitor → brief → publish → iterate |
 | `src/llm_integration.py` | The only module that calls the LLM API |
-| `src/main.py` | Entry point |
+| `src/main.py` | CLI entry point |
 | `knowledge_base/primary/` | Company docs (brand guidelines, product specs, `past_content/`) |
 | `knowledge_base/secondary/` | Industry research (market trends, competitor analysis) |
 | `project_structure.md`, `rag_decision.md` | Required PM / RAG docs |
@@ -48,11 +49,15 @@ python -m unittest tests.test_llm_integration tests.test_knowledge_base   # test
 ## How we work with agents
 
 - **One Trello card at a time.** Paste the card (title, Must ID, verify step) into the agent prompt.
-- Trello board: https://trello.com/b/6Br1zrqp/ryanairproject. Kanban flow **Backlog → Ready → In progress (WIP: 2) → Review → Done**. Don't pull a third card into In progress.
+- Trello board: https://trello.com/b/6Br1zrqp/ryanairproject. Kanban flow **Backlog → In progress (WIP: 2) → Review → Done**. Don't pull a third card into In progress.
 - Branch names are `NN-short-description`: the card number, then kebab-case words, with no `ticket-` prefix (e.g. `06-document-processor`, `20-render-hosting-docs`). One branch per card, never work directly on `main`.
 - Commit small, with messages that reference the card number (e.g. `03 — add KB loader`).
 - Claude Code: create tickets with the `/create-ticket` skill (`.claude/skills/create-ticket/`). Trello is connected via the `trello` MCP server, defined in the committed `.mcp.json`. Each person supplies their own credentials: put `TRELLO_API_KEY` and `TRELLO_TOKEN` in your `.env` (see `.env.example`; get them at https://trello.com/power-ups/admin), then start Claude Code with `set -a; source .env; set +a; claude`, because Claude Code only reads variables from the launching shell, not from `.env`. On first launch it asks you to approve the project server. If its tools fail, check the variables are set in that shell, then run `/mcp`.
 - No test or lint tooling exists yet — don't claim a check passed unless you actually ran it.
+
+## UI
+
+The local front end uses Streamlit. Run it with `streamlit run app.py`; use the sidebar to choose the channel/type, generate a draft, request feedback, or approve and save it. Enable the mocked LLM option for a demo without an API key. Uploaded assets stay in memory and are not committed.
 
 ## Definition of Done (same as the Kanban board)
 
