@@ -1,3 +1,4 @@
 PyYAML
 mcp>=1.20,<3
 python-dotenv>=1.0,<2
+openai>=1.68,<4
