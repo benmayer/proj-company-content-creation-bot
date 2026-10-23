@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hmac
+import os
 from html import escape
 from typing import Any, Optional
 
@@ -130,9 +132,34 @@ def _decline() -> None:
     st.session_state["declined"] = reason
 
 
+def _password_gate() -> bool:
+    """Ask for the shared ``APP_PASSWORD`` before showing the app; True once unlocked.
+
+    Unset locally means open. On Render (which sets ``RENDER``) an unset password fails
+    closed, so a missing env var can never expose the LLM quota.
+    """
+    expected = os.environ.get("APP_PASSWORD", "")
+    if not expected:
+        if os.environ.get("RENDER"):
+            st.error("APP_PASSWORD is not set on this service, so the app is locked.")
+            return False
+        return True
+    if st.session_state.get("unlocked"):
+        return True
+    entered = st.text_input("Password", type="password")
+    if entered:
+        if hmac.compare_digest(entered.encode(), expected.encode()):
+            st.session_state["unlocked"] = True
+            st.rerun()
+        st.error("Wrong password.")
+    return False
+
+
 def main() -> None:
     st.set_page_config(page_title="Ryanair Content Creator", layout="wide")
     st.title("Ryanair Content Creator")
+    if not _password_gate():
+        return
     st.caption("Draft with approved context, review with a human, then save only approved output.")
 
     with st.sidebar:
