@@ -9,12 +9,13 @@ Use this skill when asked to work on, implement, complete, or progress an existi
 
 ## Workflow
 
-1. **Finish existing In progress work before pulling new work.**
-   - Before starting a ticket from **Backlog** or **Ready**, inspect the board for cards already in **In progress**.
-   - Resume and finish those cards first, one at a time, using the same ticket-reading, readiness, implementation, and verification rules below.
-   - Do not pull a new backlog/Ready ticket while an existing In progress card can be completed or moved to **Review**.
-   - After each In progress card passes its Deliverables and Definition of Done checks, attach its PR to the **Github PR** field and move it to **Review** (see step 8). Never move it directly to **Done**.
-   - If an In progress card is blocked, follow the blocked-ticket procedure and stop for user feedback rather than starting another backlog ticket.
+1. **Respect the requested ticket and the board WIP limit.**
+   - Inspect the board for cards already in **In Progress** before starting work, but do not automatically switch to or finish another card first.
+   - If the user explicitly requests a ticket in **Backlog** or **Ready**, validate and start that ticket when the board has capacity. The Ryanair_project board permits up to two cards in **In Progress**; do not pull a third card into that list.
+   - If the WIP limit has been reached, do not move the requested card. Report which cards occupy the active slots and ask whether the user wants one finished, moved, or otherwise resolved.
+   - Existing In Progress cards may continue in parallel. Only resume another card when the user asks for it or when it is the ticket required by the current request.
+   - After the requested card passes its Deliverables and Definition of Done checks, attach its PR to the **Github PR** field and move it to **Review** (see step 8). Never move it directly to **Done**.
+   - If the requested card is blocked, follow the blocked-ticket procedure and stop for user feedback; do not silently switch to a different ticket.
 
 2. **Read the ticket.**
    - Fetch the card, its description, labels, checklists, comments, and current list.
