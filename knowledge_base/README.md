@@ -30,3 +30,11 @@ Primary documents currently use these `type` values: `company_profile`, `brand_v
 - `secondary/sources.md` records provenance for all secondary content. Ryanair's own facts (results, brand quotes) belong in `primary/`, not here.
 
 Primary `type` values are recorded here when card 04 is done.
+
+## Channel and content-type profiles (card 15)
+
+`src/channel_profiles.py` turns the platform cues in `primary/brand_voice.md`
+into four selectable profiles: LinkedIn, Instagram, X, and internal Slack. The
+four composable content templates are `reply`, `press_release`, `post_update`,
+and `meme`. Channel and type rules are injected separately from the selected
+primary and secondary context so industry material cannot become a company fact.

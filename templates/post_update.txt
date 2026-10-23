@@ -1,0 +1,25 @@
+Write a company post update.
+
+CHANNEL: {{channel}}
+CONTENT TYPE: {{content_type}}
+CHANNEL RULES
+{{channel_rules}}
+CONTENT-TYPE RULES
+{{content_type_rules}}
+
+REQUEST
+{{request}}
+
+PRIMARY CONTEXT — company facts and brand guidance
+{{primary_context}}
+
+SECONDARY CONTEXT — industry background, not company fact
+{{secondary_context}}
+
+VOICE RULES
+{{voice_rules}}
+
+FORMAT LIMITS
+{{format_limits}}
+
+Output the update followed by HUMAN REVIEW NOTES listing claims that need checking.

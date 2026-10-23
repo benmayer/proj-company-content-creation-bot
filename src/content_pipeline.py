@@ -11,6 +11,7 @@ from typing import Callable, Optional, Tuple, Union
 from src.knowledge_base import KnowledgeBase, SelectedContext, SelectedDocument
 from src.llm_integration import generate_draft
 from src.prompt_templates import render_prompt
+from src.channel_profiles import content_type_rules, get_channel_profile
 
 PathLike = Union[str, Path]
 ApprovalCallback = Callable[[str], bool]
@@ -87,7 +88,9 @@ class ContentPipeline:
 
     def monitor(self, request: ContentRequest) -> SelectedContext:
         """Select deterministic context for the request."""
-        return self.document().select(request.topic, channel=request.channel)
+        return self.document().select(
+            request.topic, channel=request.channel, content_type=request.content_type
+        )
 
     def brief(self, request: ContentRequest, context: SelectedContext, feedback: str = "") -> str:
         """Render the complete provider-neutral prompt for one iteration."""
@@ -109,7 +112,11 @@ class ContentPipeline:
             primary_context=_render_documents(context.primary),
             secondary_context=_render_documents(context.secondary),
             voice_rules=_primary_voice_rules(context),
-            format_limits="Respect the requested channel and template format. Keep the result concise and reviewable.",
+            format_limits=(
+                f"{get_channel_profile(request.channel).format} "
+                f"{content_type_rules(request.content_type)} Keep the result concise and reviewable."
+            ),
+            channel=request.channel,
         )
 
     def publish(self, request: ContentRequest, draft: str, iterations: int) -> Path:

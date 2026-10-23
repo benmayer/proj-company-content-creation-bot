@@ -1,0 +1,25 @@
+Write a short press release.
+
+CHANNEL: {{channel}}
+CONTENT TYPE: {{content_type}}
+CHANNEL RULES
+{{channel_rules}}
+CONTENT-TYPE RULES
+{{content_type_rules}}
+
+REQUEST
+{{request}}
+
+PRIMARY CONTEXT — company facts and brand guidance
+{{primary_context}}
+
+SECONDARY CONTEXT — industry background, not company fact
+{{secondary_context}}
+
+VOICE RULES
+{{voice_rules}}
+
+FORMAT LIMITS
+{{format_limits}}
+
+Use a factual headline and only supplied facts. End with HUMAN REVIEW NOTES listing claims that need checking.
