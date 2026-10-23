@@ -30,6 +30,11 @@ DECLINED = "declined"
 # Models vary the formatting: "HUMAN REVIEW NOTES", "**HUMAN REVIEW NOTES:**", "---" separators, a bold label line.
 _REVIEW_NOTES_RE = re.compile(r"^\W*HUMAN REVIEW NOTES", re.IGNORECASE | re.MULTILINE)
 _LEADING_LABEL_RE = re.compile(r"^\s*\*\*[^\n*]*:\*\*[ \t]*\n")
+# A first line that only labels the draft, e.g. "**Post draft**", "**Draft:**", "## Reply draft" or "Draft for X:".
+_DRAFT_HEADING_RE = re.compile(
+    r"^\s*(?:\*\*[^\n*]{1,80}\*\*:?|#{1,6}[ \t][^\n]{1,80}|(?:\w+ ){0,3}draft(?: (?:for|on) [^\n:]{1,40})?:)[ \t]*\n+",
+    re.IGNORECASE,
+)
 _MAX_EXAMPLE_CHARS = 800
 
 
@@ -77,10 +82,19 @@ class LearnedFeedback:
         return "\n".join(parts)
 
 
-def _example_text(draft: str) -> str:
+def clean_draft(draft: str) -> str:
+    """Return only the message: drop a leading "... draft" label and any HUMAN REVIEW NOTES."""
     notes = _REVIEW_NOTES_RE.search(draft)
     text = draft[: notes.start()] if notes else draft
-    text = _LEADING_LABEL_RE.sub("", text).strip().rstrip("-*_# \n")
+    text = _LEADING_LABEL_RE.sub("", text)
+    heading = _DRAFT_HEADING_RE.match(text)
+    if heading and "draft" in heading.group(0).lower():
+        text = text[heading.end():]
+    return text.strip().rstrip("-*_# \n")
+
+
+def _example_text(draft: str) -> str:
+    text = clean_draft(draft)
     if len(text) > _MAX_EXAMPLE_CHARS:
         text = text[:_MAX_EXAMPLE_CHARS].rstrip() + "..."
     return text

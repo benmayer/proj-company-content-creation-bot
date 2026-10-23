@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, Optional, Tuple, Union
 
-from src.feedback_store import APPROVED, DECLINED, FeedbackEvent, FeedbackStore, LearnedFeedback
+from src.feedback_store import APPROVED, DECLINED, FeedbackEvent, FeedbackStore, LearnedFeedback, clean_draft
 from src.knowledge_base import KnowledgeBase, SelectedContext, SelectedDocument
 from src.llm_integration import generate_draft
 from src.prompt_templates import render_prompt
@@ -25,11 +25,14 @@ class PipelineError(RuntimeError):
 
 @dataclass(frozen=True)
 class ContentRequest:
-    """Inputs accepted by the content pipeline."""
+    """Inputs accepted by the content pipeline.
+
+    A reply is drafted from ``original_content`` alone, so it needs no product or topic.
+    """
 
     content_type: str
-    product: str
-    topic: str
+    product: str = ""
+    topic: str = ""
     channel: str = "social"
     original_content: str = ""
     asset_name: str = ""
@@ -91,7 +94,7 @@ class ContentPipeline:
     def monitor(self, request: ContentRequest) -> SelectedContext:
         """Select deterministic context for the request."""
         return self.document().select(
-            request.topic, channel=request.channel, content_type=request.content_type
+            request.topic or request.original_content, channel=request.channel, content_type=request.content_type
         )
 
     def learned_feedback(self, request: ContentRequest) -> LearnedFeedback:
@@ -100,10 +103,13 @@ class ContentPipeline:
 
     def brief(self, request: ContentRequest, context: SelectedContext, feedback: str = "") -> str:
         """Render the complete provider-neutral prompt for one iteration."""
-        request_text = (
-            f"Create {request.content_type} content for product or service: {request.product}. "
-            f"Topic: {request.topic}. Channel: {request.channel}."
-        )
+        if request.content_type == "reply":
+            request_text = f"Write a reply on {request.channel}."
+        else:
+            request_text = (
+                f"Create {request.content_type} content for product or service: {request.product}. "
+                f"Topic: {request.topic}. Channel: {request.channel}."
+            )
         if request.original_content:
             request_text += f"\nOriginal post or message to reply to:\n{request.original_content}"
         if request.asset_name:
@@ -125,6 +131,12 @@ class ContentPipeline:
             channel=request.channel,
             learned_feedback=self.learned_feedback(request).render(),
         )
+
+    def draft(
+        self, request: ContentRequest, context: SelectedContext, feedback: str = "", *, client: object = None
+    ) -> str:
+        """Generate one draft and return only the message, without labels or review notes."""
+        return clean_draft(self.draft_generator(self.brief(request, context, feedback), client=client))
 
     def publish(self, request: ContentRequest, draft: str, iterations: int) -> Path:
         """Save an approved draft with a UTC timestamp and request metadata."""
@@ -177,8 +189,7 @@ class ContentPipeline:
         context = self.monitor(request)
         previous_feedback = ""
         for iteration in range(1, max_iterations + 1):
-            prompt = self.brief(request, context, previous_feedback)
-            draft = self.draft_generator(prompt, client=llm_client)
+            draft = self.draft(request, context, previous_feedback, client=llm_client)
             if approve(draft):
                 output_path = self.publish(request, draft, iteration)
                 return PipelineResult(request, draft, output_path, iteration, context)

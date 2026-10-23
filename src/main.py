@@ -16,25 +16,18 @@ from src.content_pipeline import ContentPipeline, ContentRequest, PipelineError
 from src.channel_profiles import CHANNELS, CONTENT_TYPES
 
 
-def _mock_generator(prompt: str, client: object = None) -> str:
-    """Return a deterministic draft for a local demo without an API key."""
-    return "Draft generated from approved company context.\n\nHUMAN REVIEW NOTES\n- Verify the final wording before approval."
-
-
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Create a reviewable company content draft.")
     parser.add_argument("--content-type", choices=CONTENT_TYPES + ("social_post", "campaign_brief"), required=True)
     parser.add_argument("--product", required=True)
     parser.add_argument("--topic", required=True)
     parser.add_argument("--channel", choices=CHANNELS, default="LinkedIn")
-    parser.add_argument("--mock", action="store_true", help="Use a deterministic local LLM response.")
     return parser
 
 
 def main(argv: Optional[List[str]] = None) -> int:
     args = _build_parser().parse_args(argv)
-    generator = _mock_generator if args.mock else None
-    pipeline = ContentPipeline(draft_generator=generator or ContentPipeline().draft_generator)
+    pipeline = ContentPipeline()
     request = ContentRequest(args.content_type, args.product, args.topic, args.channel)
     print("Generating draft for human review...\n")
     try:

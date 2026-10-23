@@ -31,4 +31,4 @@ LEARNED FEEDBACK — reviewer preferences, NOT company facts
 FORMAT LIMITS
 {{format_limits}}
 
-Output only the proposed post followed by a short HUMAN REVIEW NOTES section listing any claim that needs checking.
+Output only the text of the post. No heading, label, notes or commentary.

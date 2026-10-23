@@ -10,6 +10,7 @@ from src.feedback_store import (
     FeedbackStore,
     FeedbackStoreError,
     FileBackend,
+    clean_draft,
 )
 
 
@@ -60,6 +61,15 @@ class FeedbackSelectionTests(unittest.TestCase):
         _record(self.store, APPROVED, draft=draft)
         rendered = self.store.select("X", "reply").render()
         self.assertTrue(rendered.endswith("1. Good post 😅"), rendered)
+
+    def test_clean_draft_strips_label_and_notes_but_keeps_the_message(self) -> None:
+        for raw in (
+            "**Post draft**\n\nSee you at the gate.",
+            "Post type draft:\nSee you at the gate.\n\nHUMAN REVIEW NOTES\n- x",
+            "## Draft\n\nSee you at the gate.\n\n---\n**HUMAN REVIEW NOTES:**\n1. x",
+        ):
+            self.assertEqual(clean_draft(raw), "See you at the gate.", raw)
+        self.assertEqual(clean_draft("Draft your bags early:\nand fly."), "Draft your bags early:\nand fly.")
 
     def test_unknown_outcome_is_rejected(self) -> None:
         with self.assertRaises(FeedbackStoreError):
