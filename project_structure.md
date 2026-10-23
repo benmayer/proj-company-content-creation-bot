@@ -30,6 +30,7 @@ The product is intentionally a small content assistant, not an autonomous publis
 - **Runtime cost:** one model call per draft request in the normal path; no embeddings, vector database, crawler, or always-on service.
 - **Build cost:** use the existing Python 3.8+ stack and small, swappable modules. Provider-specific code belongs only in `src/llm_integration.py`.
 - **Operational cost:** human approval remains required; publishing to a live company account is outside this MVP.
+- **Hosting:** the final demo UI is deployed as a single Render web service (card 20). This is the only always-on component; it adds no database, queue, or vector store, and the LLM key lives in Render environment variables, never in git.
 
 ## 3. Stakeholders and responsibilities
 
@@ -64,7 +65,7 @@ The following are deliberately excluded from the two-day MVP:
 - **WON'T-01:** autonomous posting to a live Ryanair social account or automatic scheduling.
 - **WON'T-02:** embeddings, vector search, a vector database, or a general-purpose RAG service.
 - **WON'T-03:** web crawling, live trend ingestion, or unsourced company facts.
-- **WON'T-04:** multi-tenant accounts, analytics dashboards, billing, or a production web UI.
+- **WON'T-04:** multi-tenant accounts, analytics dashboards, billing, or a production-grade web app (user accounts, scaling, uptime guarantees). The single-service demo UI (card 16) hosted on Render (card 20) is in scope.
 
 ## 6. Work breakdown structure (WBS)
 
@@ -102,9 +103,13 @@ Wire document, monitor, brief, publish, and iterate stages; save only approved, 
 
 Keep a side-by-side sample and analysis showing differences in facts, brand fit, style, and iteration.
 
-### 6.9 Finish README, tests, demo, presentation, and screenshots (card 12)
+### 6.9 Finish README, tests, demo, presentation, and screenshots (card 13)
 
-Document setup and verification, run the demo, capture evidence, and check the Must/Won't boundary before handoff.
+Document setup and verification, run the demo, capture evidence, and check the Must/Won't boundary before handoff. The README links the live Render URL once card 20 is done.
+
+### 6.10 Deploy the UI to Render (card 20)
+
+Depends on the UI (card 16) and the LLM client (card 09). Add a Render blueprint (`render.yaml`) and start command, configure the LLM key as a Render environment variable, protect the public URL so strangers cannot spend the API quota, and decide how `outputs/` behaves on Render's ephemeral disk (approved drafts are lost on redeploy unless a persistent disk is attached). Document the deploy steps and live URL in the README.
 
 ## 7. Risks and mitigations
 
@@ -115,6 +120,7 @@ Document setup and verification, run the demo, capture evidence, and check the M
 | LLM provider/API configuration fails during demo | End-to-end flow cannot run | Keep one boundary, validate configuration early, provide a mocked verification path, and document `.env` setup. |
 | Scope expands beyond the timebox | Core flow remains unfinished | Use the Won't list, one model call per request, and the 9 WBS packages above. |
 | Human review is bypassed | Unsuitable copy could be treated as publish-ready | Make approval a pipeline state transition and save only approved output. |
+| Public Render URL exposes the LLM key's quota or loses saved drafts | Cost abuse; approved outputs vanish on redeploy | Gate the app (shared password or similar), keep the key in Render env vars, document the ephemeral-disk limitation or attach a disk (card 20). |
 | Secrets or private data enter git or evidence | Security and grading failure | Use `.env.example`, keep `.env` ignored, inspect `git diff`/tracked files before review, and use sourced public material only. |
 
 ## 8. RAG bridge and implementation contract

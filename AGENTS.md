@@ -13,6 +13,7 @@ Scope, Must IDs and the Won't list live in [`project_structure.md`](project_stru
 - Python 3.8+, dependencies in `requirements.txt`
 - LLM provider: _TBD (OpenAI or Anthropic) — update this line once decided_
 - Markdown parsing: `markdown` / `mistune` (or similar); YAML frontmatter via `PyYAML`
+- Hosting: the final UI is deployed on **Render** (card 20). On Render, secrets are set as dashboard environment variables, never committed.
 - Secrets in `.env` (never committed; it is in `.gitignore`). Copy `.env.example` to `.env` and fill it in. Expected vars: _TBD — list each key in `.env.example` and here when added_
 
 ```bash
@@ -47,6 +48,7 @@ python src/main.py
 
 - **One Trello card at a time.** Paste the card (title, Must ID, verify step) into the agent prompt.
 - Trello board: https://trello.com/b/6Br1zrqp/ryanairproject. Kanban flow **Backlog → Ready → In progress (WIP: 2) → Review → Done**. Don't pull a third card into In progress.
+- Branch names are `NN-short-description`: the card number, then kebab-case words, with no `ticket-` prefix (e.g. `06-document-processor`, `20-render-hosting-docs`). One branch per card, never work directly on `main`.
 - Commit small, with messages that reference the card number (e.g. `03 — add KB loader`).
 - Claude Code: create tickets with the `/create-ticket` skill (`.claude/skills/create-ticket/`). Trello is connected via the `trello` MCP server, defined in the committed `.mcp.json`. Each person supplies their own credentials: put `TRELLO_API_KEY` and `TRELLO_TOKEN` in your `.env` (see `.env.example`; get them at https://trello.com/power-ups/admin), then start Claude Code with `set -a; source .env; set +a; claude`, because Claude Code only reads variables from the launching shell, not from `.env`. On first launch it asks you to approve the project server. If its tools fail, check the variables are set in that shell, then run `/mcp`.
 - No test or lint tooling exists yet — don't claim a check passed unless you actually ran it.
