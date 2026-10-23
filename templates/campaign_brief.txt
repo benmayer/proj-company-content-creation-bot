@@ -12,6 +12,9 @@ SECONDARY CONTEXT — industry background, not company fact
 VOICE RULES
 {{voice_rules}}
 
+LEARNED FEEDBACK — reviewer preferences, NOT company facts
+{{learned_feedback}}
+
 FORMAT LIMITS
 {{format_limits}}
 
