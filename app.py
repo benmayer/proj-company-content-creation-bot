@@ -2,30 +2,31 @@
 
 from __future__ import annotations
 
+import hmac
 import os
-from typing import Any, Callable, Dict, Optional
+from html import escape
+from typing import Any, Optional
 
 import streamlit as st
 
 from src.content_pipeline import ContentPipeline, ContentRequest, PipelineError
 from src.channel_profiles import CHANNELS, CONTENT_TYPES
 from src.feedback_store import FeedbackStoreError
-from src.llm_integration import LLMError, generate_draft
+from src.llm_integration import LLMError
 from src.knowledge_base import SelectedContext
 
 
 CONTENT_TYPE_LABELS = {"press_release": "press release", "post_update": "post update"}
 
 
-def _mock_generator(prompt: str, client: object = None) -> str:
-    return (
-        "Mock draft based on the selected company context.\n\n"
-        "HUMAN REVIEW NOTES\n- Confirm wording and claims before approval."
+def _draft_box(draft: str) -> None:
+    """Show the draft as light text on a dark background (escaped; <br> keeps it one HTML block)."""
+    body = escape(draft.strip()).replace("\n", "<br>")
+    st.markdown(
+        '<div style="background:#14181f;color:#f3f4f6;padding:1.1rem 1.3rem;border-radius:0.5rem;'
+        f'font-size:1.05rem;line-height:1.6;">{body}</div>',
+        unsafe_allow_html=True,
     )
-
-
-def _generator() -> Callable[..., str]:
-    return _mock_generator if st.session_state.get("mock_llm", False) else generate_draft
 
 
 def _source_names(context: SelectedContext) -> list[str]:
@@ -46,10 +47,11 @@ def _read_asset(uploaded_file: Any) -> tuple[str, str]:
 
 def _request_from_form(channel: str, content_type: str, product: str, topic: str, original: str, asset: Any) -> ContentRequest:
     asset_name, asset_text = _read_asset(asset)
+    is_reply = content_type == "reply"
     return ContentRequest(
         content_type=content_type.replace(" ", "_"),
-        product=product,
-        topic=f"{content_type}: {topic}",
+        product="" if is_reply else product,
+        topic="" if is_reply else f"{content_type}: {topic}",
         channel=channel,
         original_content=original,
         asset_name=asset_name,
@@ -58,10 +60,10 @@ def _request_from_form(channel: str, content_type: str, product: str, topic: str
 
 
 def _generate(request: ContentRequest) -> None:
-    pipeline = ContentPipeline(draft_generator=_generator())
+    pipeline = ContentPipeline()
     context = pipeline.monitor(request)
     try:
-        draft = pipeline.draft_generator(pipeline.brief(request, context), client=None)
+        draft = pipeline.draft(request, context)
     except (LLMError, PipelineError, RuntimeError) as exc:
         st.session_state["error"] = str(exc)
         return
@@ -88,7 +90,7 @@ def _iterate() -> None:
         return
     revised_request = request
     try:
-        draft = pipeline.draft_generator(pipeline.brief(revised_request, context, feedback), client=None)
+        draft = pipeline.draft(revised_request, context, feedback)
     except (LLMError, PipelineError, RuntimeError) as exc:
         st.session_state["error"] = str(exc)
         return
@@ -130,9 +132,34 @@ def _decline() -> None:
     st.session_state["declined"] = reason
 
 
+def _password_gate() -> bool:
+    """Ask for the shared ``APP_PASSWORD`` before showing the app; True once unlocked.
+
+    Unset locally means open. On Render (which sets ``RENDER``) an unset password fails
+    closed, so a missing env var can never expose the LLM quota.
+    """
+    expected = os.environ.get("APP_PASSWORD", "")
+    if not expected:
+        if os.environ.get("RENDER"):
+            st.error("APP_PASSWORD is not set on this service, so the app is locked.")
+            return False
+        return True
+    if st.session_state.get("unlocked"):
+        return True
+    entered = st.text_input("Password", type="password")
+    if entered:
+        if hmac.compare_digest(entered.encode(), expected.encode()):
+            st.session_state["unlocked"] = True
+            st.rerun()
+        st.error("Wrong password.")
+    return False
+
+
 def main() -> None:
     st.set_page_config(page_title="Ryanair Content Creator", layout="wide")
     st.title("Ryanair Content Creator")
+    if not _password_gate():
+        return
     st.caption("Draft with approved context, review with a human, then save only approved output.")
 
     with st.sidebar:
@@ -141,23 +168,51 @@ def main() -> None:
         content_type = st.selectbox(
             "Type", CONTENT_TYPES, format_func=lambda value: CONTENT_TYPE_LABELS.get(value, value)
         )
-        product = st.text_input("Product or service", placeholder="e.g. flights")
-        topic = st.text_area("Topic", placeholder="What should the content communicate?")
-        original = ""
-        if content_type == "reply":
-            original = st.text_area("Original post or message", height=120)
+        is_reply = content_type == "reply"
+        product = topic = original = ""
+        if is_reply:
+            original = st.text_area("Original post or message", height=160)
+        else:
+            product = st.text_input("Product or service", placeholder="e.g. flights")
+            topic = st.text_area("Topic", placeholder="What should the content communicate?")
         asset = st.file_uploader("Optional asset", type=["txt", "png", "jpg", "jpeg", "pdf"])
-        st.session_state["mock_llm"] = st.checkbox("Use mocked LLM (no API key)", value=not bool(os.getenv("OPENAI_API_KEY")))
         if st.button("Generate", type="primary", use_container_width=True):
-            if not product.strip() or not topic.strip() or (content_type == "reply" and not original.strip()):
-                st.session_state["error"] = "Product, topic, and (for replies) the original message are required."
+            if is_reply and not original.strip():
+                st.session_state["error"] = "Paste the original post or message to reply to."
+            elif not is_reply and (not product.strip() or not topic.strip()):
+                st.session_state["error"] = "Product and topic are required."
             else:
                 _generate(_request_from_form(channel, content_type, product, topic, original, asset))
 
-    left, right = st.columns(2)
-    with left:
+    st.subheader("Draft")
+    if st.session_state.get("draft"):
+        _draft_box(st.session_state["draft"])
+        st.session_state["feedback"] = st.text_area("Give feedback", value=st.session_state.get("feedback", ""), height=100)
+        revise, approve, decline = st.columns(3)
+        with revise:
+            st.button("Revise", on_click=_iterate, use_container_width=True)
+        with approve:
+            st.button("Approve + save", on_click=_approve, type="primary", use_container_width=True)
+        with decline:
+            st.button("Decline", on_click=_decline, use_container_width=True)
+        if st.session_state.get("saved_path"):
+            st.success(f"Approved draft saved to `{st.session_state['saved_path']}`")
+        if st.session_state.get("declined"):
+            st.info(f"Declined. Later {channel} {content_type} drafts will take this into account: {st.session_state['declined']}")
+    else:
+        st.info("Complete the request form and select Generate.")
+    if st.session_state.get("error"):
+        st.error(st.session_state["error"])
+
+    summary, sources = st.columns(2)
+    with summary:
         st.subheader("Request summary")
-        st.write({"channel": channel, "type": content_type, "product": product, "topic": topic})
+        st.write(
+            {"channel": channel, "type": content_type, "original message": original}
+            if is_reply
+            else {"channel": channel, "type": content_type, "product": product, "topic": topic}
+        )
+    with sources:
         context: Optional[SelectedContext] = st.session_state.get("context")
         if context:
             st.subheader("Source documents used")
@@ -167,26 +222,6 @@ def main() -> None:
             if pipeline and request:
                 with st.expander("Learned feedback used (style only, not company facts)"):
                     st.text(pipeline.learned_feedback(request).render())
-    with right:
-        st.subheader("Draft")
-        if st.session_state.get("draft"):
-            st.text_area("Reviewable draft", value=st.session_state["draft"], height=320, disabled=True)
-            st.session_state["feedback"] = st.text_area("Give feedback", value=st.session_state.get("feedback", ""), height=100)
-            revise, approve, decline = st.columns(3)
-            with revise:
-                st.button("Revise", on_click=_iterate, use_container_width=True)
-            with approve:
-                st.button("Approve + save", on_click=_approve, type="primary", use_container_width=True)
-            with decline:
-                st.button("Decline", on_click=_decline, use_container_width=True)
-            if st.session_state.get("saved_path"):
-                st.success(f"Approved draft saved to `{st.session_state['saved_path']}`")
-            if st.session_state.get("declined"):
-                st.info(f"Declined. Later {channel} {content_type} drafts will take this into account: {st.session_state['declined']}")
-        else:
-            st.info("Complete the request form and select Generate.")
-    if st.session_state.get("error"):
-        st.error(st.session_state["error"])
 
 
 if __name__ == "__main__":

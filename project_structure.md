@@ -56,7 +56,7 @@ There are eight Must requirements. Each one has a concrete artifact and a verifi
 | MUST-04 | Select relevant context deterministically while keeping primary and secondary context distinguishable. | `src/knowledge_base.py` | Run representative requests for company facts and industry context; inspect that returned documents are non-empty, come from the expected root, and are labelled by source kind. |
 | MUST-05 | Render complete, content-type-specific prompts that enforce fact-only generation and reviewable output constraints. | `src/prompt_templates.py`, `templates/` | Render every supported template with a representative request and assert there are no unresolved placeholders and that the prompt contains the selected context and output constraints. |
 | MUST-06 | Route all model calls through one secure, provider-swappable boundary with actionable configuration errors. | `src/llm_integration.py`, `.env.example` | Run the missing-configuration check and a mocked client check; confirm no API key is hard-coded and only `llm_integration.py` imports/calls the provider. |
-| MUST-07 | Connect document → monitor → brief → publish → iterate with human approval before an approved output is saved. | `src/content_pipeline.py`, `src/main.py`, `outputs/` | Run the documented end-to-end demo with a mocked LLM; confirm the draft pauses for approval, an approved output is timestamped and saved, and rejection requests an iteration. |
+| MUST-07 | Connect document → monitor → brief → publish → iterate with human approval before an approved output is saved. | `src/content_pipeline.py`, `src/main.py`, `outputs/` | Run the documented end-to-end demo with a real LLM key; confirm the draft pauses for approval, an approved output is timestamped and saved, and rejection requests an iteration. |
 | MUST-08 | Demonstrate concrete value beyond generic AI and provide reproducible setup/evidence. | `evidence/`, `README.md` | Inspect the side-by-side comparison for facts, brand fit, style, and iteration; follow README setup and demo commands from a clean environment without secrets. |
 
 ## 5. Won't list
@@ -118,7 +118,7 @@ Depends on the UI (card 16) and the LLM client (card 09). Add a Render blueprint
 | --- | --- | --- |
 | Source material is incomplete or unsourced | Drafts may be inaccurate or generic | Nico/Ben curate provenance and reject unsupported facts; enforce MUST-02 and MUST-05. |
 | Brand voice is reduced to a stereotype | Output may be off-brand or repetitive | Preserve complete voice guidance, include past examples, and compare against generic output in card 11. |
-| LLM provider/API configuration fails during demo | End-to-end flow cannot run | Keep one boundary, validate configuration early, provide a mocked verification path, and document `.env` setup. |
+| LLM provider/API configuration fails during demo | End-to-end flow cannot run | Keep one boundary, validate configuration early, and document `.env` setup. |
 | Scope expands beyond the timebox | Core flow remains unfinished | Use the Won't list, one model call per request, and the 9 WBS packages above. |
 | Human review is bypassed | Unsuitable copy could be treated as publish-ready | Make approval a pipeline state transition and save only approved output. |
 | Public Render URL exposes the LLM key's quota or loses saved drafts | Cost abuse; approved outputs vanish on redeploy | Gate the app (shared password or similar), keep the key in Render env vars, document the ephemeral-disk limitation or attach a disk (card 20). |

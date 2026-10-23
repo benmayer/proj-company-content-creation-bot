@@ -37,6 +37,29 @@ class ContentPipelineTests(unittest.TestCase):
             self.assertIn("PRIMARY CONTEXT", calls[0])
             self.assertIn("SECONDARY CONTEXT", calls[0])
 
+    def test_draft_is_only_the_message(self) -> None:
+        raw = "**Post draft**\n\nSee you at the gate.\n\n---\n\n**HUMAN REVIEW NOTES**\n- check"
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            pipeline = ContentPipeline(self.knowledge_base, temporary_directory, lambda _prompt, client=None: raw)
+            result = pipeline.run(self.request, approve=lambda _draft: True)
+            self.assertEqual(result.draft, "See you at the gate.")
+            self.assertEqual(pipeline.draft(self.request, result.selected_context), "See you at the gate.")
+
+    def test_reply_needs_only_the_original_message(self) -> None:
+        prompts = []
+
+        def generator(prompt: str, client: object = None) -> str:
+            prompts.append(prompt)
+            return "Fair point."
+
+        request = ContentRequest("reply", channel="X", original_content="Why are bag fees so high?")
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            pipeline = ContentPipeline(self.knowledge_base, temporary_directory, generator)
+            pipeline.run(request, approve=lambda _draft: True)
+        self.assertIn("Why are bag fees so high?", prompts[0])
+        self.assertNotIn("product or service", prompts[0])
+        self.assertNotIn("Topic:", prompts[0])
+
     def test_rejection_requests_iteration_and_saves_only_approved_draft(self) -> None:
         drafts = iter(("first draft", "revised draft"))
         prompts = []

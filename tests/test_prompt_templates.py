@@ -30,7 +30,7 @@ class PromptTemplateTests(unittest.TestCase):
             self.assertNotIn("{{", prompt)
             self.assertIn("Approved company facts.", prompt)
             self.assertIn("Industry context only.", prompt)
-            self.assertIn("human review", prompt.lower())
+            self.assertNotIn("human review notes", prompt.lower())
 
     def test_all_channel_and_content_type_combinations_render(self) -> None:
         from src.channel_profiles import CHANNELS, CONTENT_TYPES

@@ -16,18 +16,46 @@ python3 -m venv .venv
 .venv/bin/python -m streamlit run app.py
 ```
 
-For a demo without an OpenAI key, select **Use mocked LLM** in the sidebar.
-Nothing is saved until **Approve + save** is selected. Uploaded assets remain in
+Set `OPENAI_API_KEY` in `.env` first. A reply only needs the original message;
+the other types also need a product and topic. Nothing is saved until **Approve + save** is selected. Uploaded assets remain in
 memory and are not committed.
 
 The command-line entry point can be run from the project directory with:
 
 ```bash
 .venv/bin/python -m src.main --content-type social_post --product flights \
-  --topic "a weekend getaway" --channel Instagram --mock
+  --topic "a weekend getaway" --channel Instagram
 ```
 
 Running `src/main.py` directly from an IDE is also supported.
+
+## Deploy to Render
+
+The UI runs as a Render web service defined by [`render.yaml`](render.yaml)
+(Python 3.12, `streamlit run app.py` bound to `$PORT`). No `.env` is needed there.
+
+1. In Render, choose **New → Blueprint** and select this repo. Render reads `render.yaml`.
+2. Set the three variables marked `sync: false` in the service's **Environment** tab:
+
+   | Variable | Value |
+   |---|---|
+   | `OPENAI_API_KEY` | your OpenAI key |
+   | `LLM_MODEL` | model name to call |
+   | `APP_PASSWORD` | shared password for the team |
+
+3. Deploy. The app asks for `APP_PASSWORD` before showing anything; if the variable
+   is missing on Render it stays locked, so the API quota cannot be spent by outsiders.
+
+**Free-tier cold start:** the free plan spins the service down after ~15 minutes
+without traffic, and the first request afterwards takes about a minute to wake it.
+
+**Persistence:** we stay on the free plan, whose disk is ephemeral. Approved drafts in
+`outputs/` and the learned feedback in `outputs/feedback.jsonl` are lost on every
+redeploy or restart, so the self-learning does not persist on Render. To keep them,
+use a paid instance with a disk mounted at `/var/data` and set
+`FEEDBACK_STORE_PATH=/var/data/feedback.jsonl`.
+
+**Live URL:** https://proj-company-content-creation-bot.onrender.com
 
 ## Trello MCP connection
 

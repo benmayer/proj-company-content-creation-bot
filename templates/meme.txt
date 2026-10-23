@@ -33,4 +33,4 @@ LEARNED FEEDBACK — reviewer preferences, NOT company facts
 FORMAT LIMITS
 {{format_limits}}
 
-Keep it concise and safe. End with HUMAN REVIEW NOTES listing claims that need checking.
+Keep it concise and safe. Output only the caption. No heading, label, notes or commentary.

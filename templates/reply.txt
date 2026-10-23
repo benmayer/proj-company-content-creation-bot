@@ -32,4 +32,4 @@ LEARNED FEEDBACK — reviewer preferences, NOT company facts
 FORMAT LIMITS
 {{format_limits}}
 
-Output only the reply followed by a short HUMAN REVIEW NOTES section listing claims that need checking.
+Output only the text of the reply. No heading, label, notes or commentary.
