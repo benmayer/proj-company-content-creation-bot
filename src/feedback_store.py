@@ -11,7 +11,7 @@ mounted persistent disk (e.g. Render) so it survives redeploys.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, fields
 from datetime import datetime, timezone
 import json
 import os
@@ -36,6 +36,8 @@ _DRAFT_HEADING_RE = re.compile(
     re.IGNORECASE,
 )
 _MAX_EXAMPLE_CHARS = 800
+# Content types that were renamed; their stored feedback still counts for the new name.
+_LEGACY_CONTENT_TYPES = {"post update": "post", "social post": "post"}
 
 
 class FeedbackStoreError(RuntimeError):
@@ -49,7 +51,6 @@ class FeedbackEvent:
     outcome: str
     channel: str
     content_type: str
-    product: str
     topic: str
     draft: str
     reason: str
@@ -90,7 +91,11 @@ def clean_draft(draft: str) -> str:
     heading = _DRAFT_HEADING_RE.match(text)
     if heading and "draft" in heading.group(0).lower():
         text = text[heading.end():]
-    return text.strip().rstrip("-*_# \n")
+    text = text.strip().rstrip("-*_# \n")
+    # Models sometimes wrap a short post in quotation marks; drop them when they enclose the whole draft.
+    if len(text) > 2 and text[0] in "\"“" and text[-1] in "\"”" and not re.search("[\"“”]", text[1:-1]):
+        text = text[1:-1].strip()
+    return text
 
 
 def _example_text(draft: str) -> str:
@@ -102,6 +107,11 @@ def _example_text(draft: str) -> str:
 
 def _key(value: str) -> str:
     return value.strip().casefold().replace("_", " ")
+
+
+def _content_type_key(value: str) -> str:
+    key = _key(value)
+    return _LEGACY_CONTENT_TYPES.get(key, key)
 
 
 class FileBackend:
@@ -147,7 +157,6 @@ class FeedbackStore:
         outcome: str,
         channel: str,
         content_type: str,
-        product: str,
         topic: str,
         draft: str,
         reason: str = "",
@@ -158,7 +167,6 @@ class FeedbackStore:
             outcome=outcome,
             channel=channel,
             content_type=content_type,
-            product=product,
             topic=topic,
             draft=draft.strip(),
             reason=reason.strip(),
@@ -168,14 +176,19 @@ class FeedbackStore:
         return event
 
     def events(self) -> List[FeedbackEvent]:
-        """All stored events, oldest first. Malformed lines are skipped."""
+        """All stored events, oldest first. Malformed lines are skipped.
+
+        Keys an older version wrote but this one no longer uses (e.g. ``product``) are ignored.
+        """
+        known = {field.name for field in fields(FeedbackEvent)}
         events = []
         for line in self.backend.read_text().splitlines():
             if not line.strip():
                 continue
             try:
-                events.append(FeedbackEvent(**json.loads(line)))
-            except (TypeError, ValueError):
+                data = json.loads(line)
+                events.append(FeedbackEvent(**{key: value for key, value in data.items() if key in known}))
+            except (AttributeError, TypeError, ValueError):
                 continue
         return events
 
@@ -190,7 +203,8 @@ class FeedbackStore:
         matching = [
             event
             for event in self.events()
-            if _key(event.channel) == _key(channel) and _key(event.content_type) == _key(content_type)
+            if _key(event.channel) == _key(channel)
+            and _content_type_key(event.content_type) == _content_type_key(content_type)
         ]
         approved = [event for event in matching if event.outcome == APPROVED]
         declined = [event for event in matching if event.outcome == DECLINED and event.reason]

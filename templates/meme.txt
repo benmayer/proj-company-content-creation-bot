@@ -1,28 +1,22 @@
-Create a harmless travel meme caption.
+Write a {{content_type}} for {{channel}}.
 
-MEME VOICE RULES
-- Keep the tone cold, dry, and knowingly cheeky rather than warm or apologetic.
-- For delays, make light of the situation and the shared inconvenience instead of apologising for it.
-- Do not use emojis.
-
-CHANNEL: {{channel}}
-CONTENT TYPE: {{content_type}}
-CHANNEL RULES
-{{channel_rules}}
-CONTENT-TYPE RULES
-{{content_type_rules}}
-
-REQUEST
-{{request}}
-
-PRIMARY CONTEXT — company facts and brand guidance
+PRIMARY CONTEXT — company facts you may use
 {{primary_context}}
 
 SECONDARY CONTEXT — industry background, not company fact
 {{secondary_context}}
 
-VOICE RULES
+GUARDRAILS
+{{guardrails}}
+
+REQUEST
+{{request}}
+
+VOICE RULES — most specific first; where two rules disagree, the earlier one wins
 {{voice_rules}}
+
+EXAMPLES — real Ryanair posts in this voice. Match their tone, length and rhythm. Do not copy their wording or reuse their facts.
+{{examples}}
 
 LEARNED FEEDBACK — reviewer preferences, NOT company facts
 {{learned_feedback}}
@@ -30,4 +24,4 @@ LEARNED FEEDBACK — reviewer preferences, NOT company facts
 FORMAT LIMITS
 {{format_limits}}
 
-Keep it concise and safe. Output only the caption. No heading, label, notes or commentary.
+Output only the two meme lines. No heading, label, notes or commentary.

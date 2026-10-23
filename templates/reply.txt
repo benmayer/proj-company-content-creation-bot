@@ -1,23 +1,22 @@
-Reply to the supplied post or message.
+Reply on {{channel}} to the post in the request.
 
-CHANNEL: {{channel}}
-CONTENT TYPE: {{content_type}}
-CHANNEL RULES
-{{channel_rules}}
-CONTENT-TYPE RULES
-{{content_type_rules}}
-
-REQUEST
-{{request}}
-
-PRIMARY CONTEXT — company facts and brand guidance
+PRIMARY CONTEXT — company facts you may use
 {{primary_context}}
 
 SECONDARY CONTEXT — industry background, not company fact
 {{secondary_context}}
 
-VOICE RULES
+GUARDRAILS
+{{guardrails}}
+
+REQUEST
+{{request}}
+
+VOICE RULES — most specific first; where two rules disagree, the earlier one wins
 {{voice_rules}}
+
+EXAMPLES — real Ryanair posts in this voice. Match their tone, length and rhythm. Do not copy their wording or reuse their facts.
+{{examples}}
 
 LEARNED FEEDBACK — reviewer preferences, NOT company facts
 {{learned_feedback}}

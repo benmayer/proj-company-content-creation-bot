@@ -25,13 +25,25 @@ SECONDARY = "secondary"
 
 # Primary documents every draft needs, whatever the topic.
 ALWAYS_PRIMARY_TYPES = ("brand_voice", "company_profile", "editorial_guardrails")
+# Documents rendered in their own prompt blocks (VOICE RULES, GUARDRAILS), not under PRIMARY CONTEXT.
+BRAND_VOICE_TYPE = "brand_voice"
+GUARDRAILS_TYPE = "editorial_guardrails"
+VOICE_RULE_TYPES = (BRAND_VOICE_TYPE, GUARDRAILS_TYPE)
+# Team editorial profiles and verbatim channel examples, looked up by channel /
+# content type (see channel_profiles.py), never selected by topic.
+CHANNEL_PROFILE_TYPE = "channel_profile"
+CONTENT_TYPE_PROFILE_TYPE = "content_type_profile"
+CHANNEL_EXAMPLES_TYPE = "channel_examples"
+PROFILE_TYPES = (CHANNEL_PROFILE_TYPE, CONTENT_TYPE_PROFILE_TYPE, CHANNEL_EXAMPLES_TYPE)
 # Secondary documents are only added when they overlap the topic.
 MAX_SECONDARY_DOCUMENTS = 2
 FALLBACK_SECONDARY_TYPE = "market_trends"
 
 _WORD_RE = re.compile(r"[a-z0-9]+")
+# "ryanair" is on every document, so it says nothing about the topic; matching on it
+# pulled every tagged document into every reply that mentions the airline.
 _STOPWORDS = frozenset(
-    "a an and are as at be by for from how in into is it of on or our the to we with what why".split()
+    "a an and are as at be by for from how in into is it of on or our the to we with what why ryanair".split()
 )
 
 
@@ -126,7 +138,8 @@ class KnowledgeBase:
         other primary document matching the topic or channel. Secondary: the
         best topic matches (up to MAX_SECONDARY_DOCUMENTS), falling back to
         market trends so the secondary context is never empty. Source
-        provenance documents (``source_register``) are never injected.
+        provenance documents (``source_register``), channel / content-type
+        profiles and channel examples are never selected here.
         """
 
         topic_words = _words(topic)
@@ -134,13 +147,15 @@ class KnowledgeBase:
         type_words = {
             "reply": "customer feedback competitor response",
             "press_release": "announcement route promotion schedule investment",
-            "post_update": "update route promotion customer experience",
+            "post": "update route promotion customer experience",
             "meme": "social humour travel passenger",
         }.get((content_type or "").strip().lower().replace(" ", "_"), "")
         match_words |= _words(type_words)
 
         primary: List[SelectedDocument] = []
         for doc in self.primary:
+            if doc.metadata.get("type") in PROFILE_TYPES:
+                continue
             if doc.metadata.get("type") in ALWAYS_PRIMARY_TYPES:
                 primary.append(SelectedDocument(PRIMARY, doc, "always included"))
             elif _score(doc, match_words) > 0:

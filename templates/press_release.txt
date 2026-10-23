@@ -1,23 +1,22 @@
-Write a short press release.
+Write a {{content_type}} for {{channel}}.
 
-CHANNEL: {{channel}}
-CONTENT TYPE: {{content_type}}
-CHANNEL RULES
-{{channel_rules}}
-CONTENT-TYPE RULES
-{{content_type_rules}}
-
-REQUEST
-{{request}}
-
-PRIMARY CONTEXT — company facts and brand guidance
+PRIMARY CONTEXT — company facts you may use
 {{primary_context}}
 
 SECONDARY CONTEXT — industry background, not company fact
 {{secondary_context}}
 
-VOICE RULES
+GUARDRAILS
+{{guardrails}}
+
+REQUEST
+{{request}}
+
+VOICE RULES — most specific first; where two rules disagree, the earlier one wins
 {{voice_rules}}
+
+EXAMPLES — real Ryanair posts in this voice. Match their tone, length and rhythm. Do not copy their wording or reuse their facts.
+{{examples}}
 
 LEARNED FEEDBACK — reviewer preferences, NOT company facts
 {{learned_feedback}}
@@ -25,4 +24,4 @@ LEARNED FEEDBACK — reviewer preferences, NOT company facts
 FORMAT LIMITS
 {{format_limits}}
 
-Use a factual headline and only supplied facts. Output only the press release text. No label, notes or commentary.
+Output only the press release text. No label, notes or commentary.
