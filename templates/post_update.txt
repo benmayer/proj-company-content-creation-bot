@@ -25,4 +25,4 @@ LEARNED FEEDBACK — reviewer preferences, NOT company facts
 FORMAT LIMITS
 {{format_limits}}
 
-Output the update followed by HUMAN REVIEW NOTES listing claims that need checking.
+Output only the text of the update. No heading, label, notes or commentary.

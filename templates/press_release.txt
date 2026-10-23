@@ -25,4 +25,4 @@ LEARNED FEEDBACK — reviewer preferences, NOT company facts
 FORMAT LIMITS
 {{format_limits}}
 
-Use a factual headline and only supplied facts. End with HUMAN REVIEW NOTES listing claims that need checking.
+Use a factual headline and only supplied facts. Output only the press release text. No label, notes or commentary.

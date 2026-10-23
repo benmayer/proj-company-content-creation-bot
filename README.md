@@ -16,15 +16,15 @@ python3 -m venv .venv
 .venv/bin/python -m streamlit run app.py
 ```
 
-For a demo without an OpenAI key, select **Use mocked LLM** in the sidebar.
-Nothing is saved until **Approve + save** is selected. Uploaded assets remain in
+Set `OPENAI_API_KEY` in `.env` first. A reply only needs the original message;
+the other types also need a product and topic. Nothing is saved until **Approve + save** is selected. Uploaded assets remain in
 memory and are not committed.
 
 The command-line entry point can be run from the project directory with:
 
 ```bash
 .venv/bin/python -m src.main --content-type social_post --product flights \
-  --topic "a weekend getaway" --channel Instagram --mock
+  --topic "a weekend getaway" --channel Instagram
 ```
 
 Running `src/main.py` directly from an IDE is also supported.

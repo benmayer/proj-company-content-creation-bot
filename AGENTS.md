@@ -59,7 +59,7 @@ python -m unittest tests.test_llm_integration tests.test_knowledge_base   # test
 
 ## UI
 
-The local front end uses Streamlit. Run it with `streamlit run app.py`; use the sidebar to choose the channel/type, generate a draft, request feedback, or approve and save it. Enable the mocked LLM option for a demo without an API key. Uploaded assets stay in memory and are not committed.
+The local front end uses Streamlit. Run it with `streamlit run app.py`; use the sidebar to choose the channel/type, generate a draft, request feedback, or approve and save it. Uploaded assets stay in memory and are not committed.
 
 ## Definition of Done (same as the Kanban board)
 
