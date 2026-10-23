@@ -49,9 +49,13 @@ The UI runs as a Render web service defined by [`render.yaml`](render.yaml)
 **Free-tier cold start:** the free plan spins the service down after ~15 minutes
 without traffic, and the first request afterwards takes about a minute to wake it.
 
-**Persistence:** TODO (decision pending, see card 20).
+**Persistence:** we stay on the free plan, whose disk is ephemeral. Approved drafts in
+`outputs/` and the learned feedback in `outputs/feedback.jsonl` are lost on every
+redeploy or restart, so the self-learning does not persist on Render. To keep them,
+use a paid instance with a disk mounted at `/var/data` and set
+`FEEDBACK_STORE_PATH=/var/data/feedback.jsonl`.
 
-**Live URL:** TODO (set after the first deploy).
+**Live URL:** https://proj-company-content-creation-bot.onrender.com
 
 ## Trello MCP connection
 
