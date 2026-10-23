@@ -9,6 +9,7 @@ import streamlit as st
 
 from src.content_pipeline import ContentPipeline, ContentRequest, PipelineError
 from src.channel_profiles import CHANNELS, CONTENT_TYPES
+from src.feedback_store import FeedbackStoreError
 from src.llm_integration import LLMError, generate_draft
 from src.knowledge_base import SelectedContext
 
@@ -71,6 +72,9 @@ def _generate(request: ContentRequest) -> None:
         draft=draft,
         feedback="",
         error="",
+        iterations=1,
+        saved_path="",
+        declined="",
     )
 
 
@@ -88,7 +92,12 @@ def _iterate() -> None:
     except (LLMError, PipelineError, RuntimeError) as exc:
         st.session_state["error"] = str(exc)
         return
-    st.session_state.update(draft=draft, error="", feedback="")
+    st.session_state.update(
+        draft=draft,
+        error="",
+        feedback="",
+        iterations=st.session_state.get("iterations", 1) + 1,
+    )
 
 
 def _approve() -> None:
@@ -99,8 +108,8 @@ def _approve() -> None:
         st.session_state["error"] = "Generate a draft before approving it."
         return
     try:
-        path = pipeline.publish(request, draft, iterations=1)
-    except (OSError, PipelineError) as exc:
+        path = pipeline.publish(request, draft, iterations=st.session_state.get("iterations", 1))
+    except (OSError, PipelineError, FeedbackStoreError) as exc:
         st.session_state["error"] = str(exc)
         return
     st.session_state["saved_path"] = str(path)
@@ -114,8 +123,8 @@ def _decline() -> None:
         return
     reason = st.session_state.get("feedback", "").strip() or "No reason supplied."
     try:
-        pipeline.record_decline(request, reason)
-    except OSError as exc:
+        pipeline.record_decline(request, reason, st.session_state.get("draft", ""))
+    except (OSError, FeedbackStoreError) as exc:
         st.session_state["error"] = str(exc)
         return
     st.session_state["declined"] = reason
@@ -153,6 +162,11 @@ def main() -> None:
         if context:
             st.subheader("Source documents used")
             st.markdown("\n".join(f"- {name}" for name in _source_names(context)))
+            pipeline: Optional[ContentPipeline] = st.session_state.get("pipeline")
+            request: Optional[ContentRequest] = st.session_state.get("request")
+            if pipeline and request:
+                with st.expander("Learned feedback used (style only, not company facts)"):
+                    st.text(pipeline.learned_feedback(request).render())
     with right:
         st.subheader("Draft")
         if st.session_state.get("draft"):
@@ -168,7 +182,7 @@ def main() -> None:
             if st.session_state.get("saved_path"):
                 st.success(f"Approved draft saved to `{st.session_state['saved_path']}`")
             if st.session_state.get("declined"):
-                st.info(f"Declined for ticket 19 feedback tracking: {st.session_state['declined']}")
+                st.info(f"Declined. Later {channel} {content_type} drafts will take this into account: {st.session_state['declined']}")
         else:
             st.info("Complete the request form and select Generate.")
     if st.session_state.get("error"):

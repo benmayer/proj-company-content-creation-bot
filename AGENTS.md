@@ -32,7 +32,9 @@ python -m unittest tests.test_llm_integration tests.test_knowledge_base   # test
 | `src/knowledge_base.py` | Loads / selects from primary and secondary KBs |
 | `src/prompt_templates.py` + `templates/` | Reusable prompt templates (style variants) |
 | `src/content_pipeline.py` | document → monitor → brief → publish → iterate |
+| `src/feedback_store.py` | Approved/declined drafts in `outputs/feedback.jsonl` (or `FEEDBACK_STORE_PATH`), selected per channel + type as learned feedback |
 | `src/llm_integration.py` | The only module that calls the LLM API |
+| `evidence/` | Graded proof: `self_learning_demo.py` and `self_learning/comparison.md` (before/after feedback) |
 | `src/main.py` | CLI entry point |
 | `knowledge_base/primary/` | Company docs (brand guidelines, product specs, `past_content/`) |
 | `knowledge_base/secondary/` | Industry research (market trends, competitor analysis) |

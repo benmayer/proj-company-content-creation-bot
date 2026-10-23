@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
-import json
 from pathlib import Path
 from typing import Callable, Optional, Tuple, Union
 
+from src.feedback_store import APPROVED, DECLINED, FeedbackEvent, FeedbackStore, LearnedFeedback
 from src.knowledge_base import KnowledgeBase, SelectedContext, SelectedDocument
 from src.llm_integration import generate_draft
 from src.prompt_templates import render_prompt
@@ -75,10 +75,12 @@ class ContentPipeline:
         knowledge_base: Optional[KnowledgeBase] = None,
         output_dir: PathLike = Path("outputs"),
         draft_generator: DraftGenerator = generate_draft,
+        feedback_store: Optional[FeedbackStore] = None,
     ) -> None:
         self.knowledge_base = knowledge_base
         self.output_dir = Path(output_dir)
         self.draft_generator = draft_generator
+        self.feedback_store = feedback_store or FeedbackStore.from_env(self.output_dir / "feedback.jsonl")
 
     def document(self) -> KnowledgeBase:
         """Load both Markdown knowledge bases once."""
@@ -91,6 +93,10 @@ class ContentPipeline:
         return self.document().select(
             request.topic, channel=request.channel, content_type=request.content_type
         )
+
+    def learned_feedback(self, request: ContentRequest) -> LearnedFeedback:
+        """Select past approvals and decline reasons for the same channel and type."""
+        return self.feedback_store.select(request.channel, request.content_type)
 
     def brief(self, request: ContentRequest, context: SelectedContext, feedback: str = "") -> str:
         """Render the complete provider-neutral prompt for one iteration."""
@@ -117,6 +123,7 @@ class ContentPipeline:
                 f"{content_type_rules(request.content_type)} Keep the result concise and reviewable."
             ),
             channel=request.channel,
+            learned_feedback=self.learned_feedback(request).render(),
         )
 
     def publish(self, request: ContentRequest, draft: str, iterations: int) -> Path:
@@ -137,23 +144,23 @@ class ContentPipeline:
             f"{draft.strip()}\n",
             encoding="utf-8",
         )
+        self._record(APPROVED, request, draft)
         return path
 
-    def record_decline(self, request: ContentRequest, reason: str) -> Path:
-        """Append a decline event for the future feedback/self-learning flow."""
-        self.output_dir.mkdir(parents=True, exist_ok=True)
-        path = self.output_dir / "declined.jsonl"
-        event = {
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "content_type": request.content_type,
-            "product": request.product,
-            "topic": request.topic,
-            "channel": request.channel,
-            "reason": reason.strip() or "No reason supplied.",
-        }
-        with path.open("a", encoding="utf-8") as handle:
-            handle.write(json.dumps(event, sort_keys=True) + "\n")
-        return path
+    def record_decline(self, request: ContentRequest, reason: str, draft: str = "") -> FeedbackEvent:
+        """Store a declined draft and its reason so later drafts can avoid it."""
+        return self._record(DECLINED, request, draft, reason.strip() or "No reason supplied.")
+
+    def _record(self, outcome: str, request: ContentRequest, draft: str, reason: str = "") -> FeedbackEvent:
+        return self.feedback_store.record(
+            outcome,
+            channel=request.channel,
+            content_type=request.content_type,
+            product=request.product,
+            topic=request.topic,
+            draft=draft,
+            reason=reason,
+        )
 
     def run(
         self,

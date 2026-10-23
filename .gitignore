@@ -218,3 +218,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Self-learning reviewer feedback (card 19): runtime data, may be on a persistent disk
+outputs/feedback.jsonl

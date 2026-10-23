@@ -14,6 +14,7 @@ PathLike = Union[str, Path]
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_TEMPLATES_DIR = PROJECT_ROOT / "templates"
 _PLACEHOLDER_RE = re.compile(r"\{\{\s*([a-z][a-z0-9_]*)\s*\}\}")
+NO_LEARNED_FEEDBACK = "(No learned feedback yet for this channel and type.)"
 
 
 class PromptTemplateError(ValueError):
@@ -72,13 +73,15 @@ def render_prompt(
     format_limits: str,
     templates_dir: PathLike = DEFAULT_TEMPLATES_DIR,
     channel: str = "LinkedIn",
+    learned_feedback: str = NO_LEARNED_FEEDBACK,
 ) -> str:
     """Render a complete prompt for one content type.
 
     Content templates are intentionally plain text files. Adding a new content
     type therefore requires adding one ``<content_type>.txt`` file, without
     changing this renderer. Primary and secondary context are separate named
-    values so templates cannot accidentally hide their provenance.
+    values so templates cannot accidentally hide their provenance. Learned
+    feedback is a third, separately labelled value: style guidance, not fact.
     """
 
     if not content_type or Path(content_type).name != content_type:
@@ -94,6 +97,7 @@ def render_prompt(
         "secondary_context": secondary_context,
         "voice_rules": voice_rules,
         "format_limits": format_limits,
+        "learned_feedback": learned_feedback,
         "channel": profile.name,
         "channel_rules": f"Tone: {profile.tone}\nFormat: {profile.format}\nKB source: {profile.source}",
         "content_type": content_type_label(content_type),

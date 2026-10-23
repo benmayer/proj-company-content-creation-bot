@@ -88,5 +88,16 @@ class PromptTemplateTests(unittest.TestCase):
                 render_template("broken", {"request": "A request"}, templates_dir=root)
 
 
+class LearnedFeedbackTemplateTests(unittest.TestCase):
+    def test_every_template_renders_learned_feedback(self) -> None:
+        for content_type in available_content_types():
+            with self.subTest(content_type=content_type):
+                prompt = render_prompt(
+                    content_type, "request", "primary", "secondary", "voice", "limits",
+                    learned_feedback="LEARNED-MARKER",
+                )
+                self.assertIn("LEARNED-MARKER", prompt)
+
+
 if __name__ == "__main__":
     unittest.main()

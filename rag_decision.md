@@ -46,3 +46,14 @@ We do not use the provenance, attested-computation or `index.md`/`log.md` featur
 
 - The document processor (card 06) parses YAML frontmatter, so `requirements.txt` includes `PyYAML`.
 - If a knowledge base ever outgrows the context window, revisit this decision. Until then, injection stays.
+
+## Self-learning from approved and declined drafts (card 19)
+
+**Decision: learning is injection, not training.** There is no fine-tuning and no embeddings, so WON'T-02 still holds.
+
+- Every approval and decline is stored as one JSON line (outcome, channel, type, product, topic, draft, reason, timestamp) by `src/feedback_store.py`.
+- When a prompt is built, the latest 2 approved drafts and 3 decline reasons for the **same channel and type** are selected deterministically and injected as a separate `LEARNED FEEDBACK` block.
+- Learned feedback is style guidance only. It is labelled "NOT company facts", stays out of the primary and secondary blocks, and the system prompt tells the model not to take claims from it.
+- Only the decline *reason* is fed back, not the declined text, so a rejected draft's wording is not reused.
+
+**Where it is stored.** Locally: `outputs/feedback.jsonl`. Render's disk is ephemeral, so for the hosted app attach a Render persistent disk (paid instances only, billed per GB per month) mounted at `/var/data` and set `FEEDBACK_STORE_PATH=/var/data/feedback.jsonl`. No extra service or dependency is needed. On a free instance, feedback resets on every deploy; that is the documented trade-off for card 20.
