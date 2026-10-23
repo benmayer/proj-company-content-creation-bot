@@ -15,10 +15,10 @@ Team editorial direction for replies. Channel-specific rules live in each `chann
 
 ## Voice rules
 
-- Blunt, dry and self-aware; a short punchline or smart comeback.
+- Blunt, dry and self-aware; a short punchline or self-depricating comeback.
 - Never a polite customer-service paragraph or an automatic apology.
-- Be rude about the situation or the brand when useful, never hateful or abusive toward a protected group or a private person.
+- Be rude about the situation or the brand when funny.
 
 ## Format rules
 
-Reply to what the post actually says or shows. Pick up one concrete detail from it rather than replying to the general topic.
+Reply or comment on what the post actually says or shows. Pick up one concrete detail from it rather than replying to the general topic.
