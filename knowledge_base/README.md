@@ -21,12 +21,12 @@ Body in markdown.
 
 `type` is required. `title`, `description` and `tags` are recommended; `tags` is a YAML list. Other keys are allowed and must be preserved.
 
-Primary documents currently use these `type` values: `company_profile`, `brand_voice`, `promotion_pattern`, `editorial_guardrails`, `past_content_examples`, plus the profile and example types below. Secondary-document types will be added when the industry knowledge base is built (card 05).
+Primary documents currently use these `type` values: `company_profile`, `brand_voice`, `promotion_pattern`, `editorial_guardrails`, `past_content_examples`, `product_policy` (`fares_and_extras.md`: what each fare includes and which extras are paid), plus the profile and example types below. Secondary-document types will be added when the industry knowledge base is built (card 05).
 
 ## Secondary KB conventions (card 05)
 
 - Every file in `secondary/` carries `source_kind: secondary` plus `retrieved` (date) and `confidence`. The loader can tell the two KBs apart by folder and by this key.
-- `type` values used so far in `secondary/`: `market_trends`, `competitor_analysis`, `customer_feedback`, `source_register`.
+- `type` values used so far in `secondary/`: `market_trends`, `competitor_analysis`, `customer_feedback`, `public_perception`, `source_register`.
 - `secondary/sources.md` records provenance for all secondary content. Ryanair's own facts (results, brand quotes) belong in `primary/`, not here.
 
 Primary `type` values are recorded here when card 04 is done.
@@ -48,7 +48,7 @@ Where the writing rules live. Templates in `templates/` carry only structure and
 
 How the prompt is assembled (facts first, voice last, because the end of a prompt weighs most):
 
-1. `PRIMARY CONTEXT`, `SECONDARY CONTEXT`: topic-selected documents. Sections only useful to a human reviewer (`Sources`, `Review questions`, …) are left out, and Markdown link URLs are dropped.
+1. `PRIMARY CONTEXT`, `SECONDARY CONTEXT`: topic-selected documents. Replies and memes on public channels always include the background pair `primary/fares_and_extras.md` (the product as it really is) and `secondary/public_perception.md` (how passengers see it); press releases and internal Slack never do; other drafts get them only when the topic matches (e.g. cabin bags). Sections only useful to a human reviewer (`Sources`, `Review questions`, …) are left out, and Markdown link URLs are dropped.
 2. `GUARDRAILS`: `editorial_guardrails.md`.
 3. `REQUEST`: the topic, or the post to reply to (text and/or an attached screenshot).
 4. `VOICE RULES`, most specific first: the channel profile's section for this type, the content type's `## Voice rules`, the channel's `## Tone`, then `brand_voice.md`.

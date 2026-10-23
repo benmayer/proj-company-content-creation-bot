@@ -22,7 +22,7 @@
 
 ## How documents are selected instead
 
-Selection is deterministic and based on frontmatter metadata (`type`, `tags`), implemented in `src/knowledge_base.py` (card 07). For example: always load the brand-voice document, plus competitor documents tagged for the topic of the brief.
+Selection is deterministic and based on frontmatter metadata (`type`, `tags`), implemented in `src/knowledge_base.py` (card 07). For example: always load the brand-voice document, plus competitor documents tagged for the topic of the brief. Public replies and memes also always load `fares_and_extras.md` (what the product really includes) and `public_perception.md` (how passengers see it), because those are what the jokes are about. Press releases and internal Slack never load them.
 
 ## Why OKF
 

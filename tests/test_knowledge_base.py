@@ -112,8 +112,30 @@ class KnowledgeBaseSelectionTests(unittest.TestCase):
         ctx = self.kb.select("ryanair delayed my flight again", "X", "reply")
         self.assertEqual(
             {i.document.metadata["type"] for i in ctx.primary},
-            {"brand_voice", "company_profile", "editorial_guardrails"},
+            {"brand_voice", "company_profile", "editorial_guardrails", "product_policy"},
         )
+
+    def test_public_replies_and_memes_get_product_and_perception_background(self) -> None:
+        for channel, content_type in (("X", "reply"), ("Instagram", "reply"), ("X", "meme"), ("Instagram", "meme")):
+            with self.subTest(channel=channel, content_type=content_type):
+                ctx = self.kb.select("zzzz qqqq", channel, content_type)
+                self.assertIn("product_policy", {i.document.metadata["type"] for i in ctx.primary})
+                self.assertEqual(ctx.secondary[0].document.metadata["type"], "public_perception")
+
+    def test_press_releases_and_slack_never_get_the_background(self) -> None:
+        for channel, content_type in (("LinkedIn", "press_release"), ("internal Slack", "meme"), ("internal Slack", "post")):
+            with self.subTest(channel=channel, content_type=content_type):
+                ctx = self.kb.select("cabin bag fees and priority boarding", channel, content_type)
+                types = {i.document.metadata["type"] for i in ctx.primary + ctx.secondary}
+                self.assertFalse(types & {"product_policy", "public_perception"})
+
+    def test_generic_airline_words_do_not_pull_in_the_background(self) -> None:
+        topic = "Ryanair has flown 15 million passengers through Oslo Torp airport since 1997"
+        ctx = self.kb.select(topic, "LinkedIn", "post")
+        types = {i.document.metadata["type"] for i in ctx.primary + ctx.secondary}
+        self.assertFalse(types & {"product_policy", "public_perception"})
+        bags = self.kb.select("cabin bag sizes", "X", "post")
+        self.assertIn("product_policy", {i.document.metadata["type"] for i in bags.primary})
 
 
 if __name__ == "__main__":
