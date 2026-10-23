@@ -1,5 +1,10 @@
 Create a harmless travel meme caption.
 
+MEME VOICE RULES
+- Keep the tone cold, dry, and knowingly cheeky rather than warm or apologetic.
+- For delays, make light of the situation and the shared inconvenience instead of apologising for it.
+- Do not use emojis.
+
 CHANNEL: {{channel}}
 CONTENT TYPE: {{content_type}}
 CHANNEL RULES

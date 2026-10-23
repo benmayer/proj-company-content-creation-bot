@@ -6,16 +6,28 @@ A small product that creates public company posts, including the tone of voice a
 The local front end uses Streamlit and keeps the request form beside the draft
 review panel. It supports LinkedIn, Instagram, X, and internal Slack; reply,
 press release, post update, and meme types; source-document visibility; feedback
-iterations; and approval-gated saving to `outputs/`.
+iterations; and approval-gated saving to `outputs/`. Channel profiles are
+derived from the primary brand-voice knowledge base, while content templates
+remain composable across all four channels.
 
 ```bash
-pip install -r requirements.txt
-streamlit run app.py
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python -m streamlit run app.py
 ```
 
 For a demo without an OpenAI key, select **Use mocked LLM** in the sidebar.
 Nothing is saved until **Approve + save** is selected. Uploaded assets remain in
 memory and are not committed.
+
+The command-line entry point can be run from the project directory with:
+
+```bash
+.venv/bin/python -m src.main --content-type social_post --product flights \
+  --topic "a weekend getaway" --channel Instagram --mock
+```
+
+Running `src/main.py` directly from an IDE is also supported.
 
 ## Trello MCP connection
 

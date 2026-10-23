@@ -3,9 +3,17 @@
 from __future__ import annotations
 
 import argparse
+import sys
+from pathlib import Path
 from typing import List, Optional
 
+# Support both ``python -m src.main`` and running this file directly from an
+# IDE. The latter does not automatically put the project root on sys.path.
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from src.content_pipeline import ContentPipeline, ContentRequest, PipelineError
+from src.channel_profiles import CHANNELS, CONTENT_TYPES
 
 
 def _mock_generator(prompt: str, client: object = None) -> str:
@@ -15,10 +23,10 @@ def _mock_generator(prompt: str, client: object = None) -> str:
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Create a reviewable company content draft.")
-    parser.add_argument("--content-type", choices=("social_post", "campaign_brief"), required=True)
+    parser.add_argument("--content-type", choices=CONTENT_TYPES + ("social_post", "campaign_brief"), required=True)
     parser.add_argument("--product", required=True)
     parser.add_argument("--topic", required=True)
-    parser.add_argument("--channel", default="social")
+    parser.add_argument("--channel", choices=CHANNELS, default="LinkedIn")
     parser.add_argument("--mock", action="store_true", help="Use a deterministic local LLM response.")
     return parser
 
