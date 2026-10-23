@@ -1,0 +1,18 @@
+Create a reusable campaign/content brief from the following request.
+
+REQUEST
+{{request}}
+
+PRIMARY CONTEXT — company facts and brand guidance
+{{primary_context}}
+
+SECONDARY CONTEXT — industry background, not company fact
+{{secondary_context}}
+
+VOICE RULES
+{{voice_rules}}
+
+FORMAT LIMITS
+{{format_limits}}
+
+Use these headings: Objective, Audience, Core Message, Supporting Points, Suggested Execution, and Human Review Questions. Keep unsupported claims out of the brief.
