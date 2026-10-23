@@ -1,0 +1,18 @@
+Create a social post from the following request.
+
+REQUEST
+{{request}}
+
+PRIMARY CONTEXT — company facts and brand guidance
+{{primary_context}}
+
+SECONDARY CONTEXT — industry background, not company fact
+{{secondary_context}}
+
+VOICE RULES
+{{voice_rules}}
+
+FORMAT LIMITS
+{{format_limits}}
+
+Output only the proposed post followed by a short HUMAN REVIEW NOTES section listing any claim that needs checking.
