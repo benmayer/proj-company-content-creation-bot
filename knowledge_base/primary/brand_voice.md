@@ -29,6 +29,7 @@ The same core voice should adapt to the channel:
 | Instagram | Short visual-first caption, meme-friendly setup, one recognisable travel or flight moment, concise punchline, restrained emoji use where it adds meaning | Dense corporate explanation or a joke that needs a paragraph of context |
 | X / Twitter | Fast reaction, direct reply, topical observation, compact wording, and a clear link to Ryanair or the passenger experience | Treating an unverified rumour or a developing event as fact |
 | LinkedIn | More explicit company, people, investment, route, jobs, technology, or operational context; still human and occasionally playful, but easier to scan | Copying the most chaotic consumer-social tone into an employer or corporate update |
+| Internal Slack | Direct, practical and collaborative; use the brand voice as context while prioritising clarity for colleagues and a clear next action | Treating an internal draft as approved public copy or hiding an unresolved claim in a joke |
 
 These channel cues are editorial defaults for the MVP. They must be checked against the actual requested channel and source material for each draft.
 

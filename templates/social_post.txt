@@ -1,5 +1,12 @@
 Create a social post from the following request.
 
+CHANNEL: {{channel}}
+CONTENT TYPE: {{content_type}}
+CHANNEL RULES
+{{channel_rules}}
+CONTENT-TYPE RULES
+{{content_type_rules}}
+
 REQUEST
 {{request}}
 
