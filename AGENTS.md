@@ -11,15 +11,16 @@ Scope, Must IDs and the Won't list live in [`project_structure.md`](project_stru
 ## Stack & how to run
 
 - Python 3.8+, dependencies in `requirements.txt`
-- LLM provider: _TBD (OpenAI or Anthropic) — update this line once decided_
+- LLM provider: OpenAI, via the `openai` SDK, called only from `src/llm_integration.py`
 - Markdown parsing: `markdown` / `mistune` (or similar); YAML frontmatter via `PyYAML`
 - Hosting: the final UI is deployed on **Render** (card 20). On Render, secrets are set as dashboard environment variables, never committed.
-- Secrets in `.env` (never committed; it is in `.gitignore`). Copy `.env.example` to `.env` and fill it in. Expected vars: _TBD — list each key in `.env.example` and here when added_
+- Secrets in `.env` (never committed; it is in `.gitignore`). Copy `.env.example` to `.env` and fill it in. Expected vars: `OPENAI_API_KEY`, `LLM_MODEL` (plus `TRELLO_API_KEY` / `TRELLO_TOKEN` for the Trello MCP)
 
 ```bash
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 python src/main.py
+python -m unittest tests.test_llm_integration tests.test_knowledge_base   # tests use unittest; no key or network needed
 ```
 
 ## Repo map
