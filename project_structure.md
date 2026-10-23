@@ -9,6 +9,7 @@
 | Primary user | A company social-media/content team member who needs a reviewable draft quickly |
 | MVP output | A short, public-facing company post produced from approved knowledge-base context |
 | Content scope | Social posts and one reusable campaign/content brief format; the final channel and length are request inputs |
+| Local UI | Streamlit form-and-draft interface; the four agreed channels and four content types are request inputs |
 | MVP boundary | Documented ingestion, deterministic context selection, prompt rendering, one LLM boundary, human review, and saved outputs |
 | Source-of-truth rule | Company facts and brand rules come from `knowledge_base/primary/`; market context comes from `knowledge_base/secondary/` |
 

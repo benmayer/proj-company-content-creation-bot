@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
+import json
 from pathlib import Path
 from typing import Callable, Optional, Tuple, Union
 
@@ -29,6 +30,9 @@ class ContentRequest:
     product: str
     topic: str
     channel: str = "social"
+    original_content: str = ""
+    asset_name: str = ""
+    asset_text: str = ""
 
 
 @dataclass(frozen=True)
@@ -91,6 +95,12 @@ class ContentPipeline:
             f"Create {request.content_type} content for product or service: {request.product}. "
             f"Topic: {request.topic}. Channel: {request.channel}."
         )
+        if request.original_content:
+            request_text += f"\nOriginal post or message to reply to:\n{request.original_content}"
+        if request.asset_name:
+            request_text += f"\nAn optional asset named '{request.asset_name}' was supplied."
+        if request.asset_text:
+            request_text += f"\nText extracted from the optional asset:\n{request.asset_text}"
         if feedback:
             request_text += f"\nHuman feedback from the previous draft: {feedback}"
         return render_prompt(
@@ -120,6 +130,22 @@ class ContentPipeline:
             f"{draft.strip()}\n",
             encoding="utf-8",
         )
+        return path
+
+    def record_decline(self, request: ContentRequest, reason: str) -> Path:
+        """Append a decline event for the future feedback/self-learning flow."""
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        path = self.output_dir / "declined.jsonl"
+        event = {
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "content_type": request.content_type,
+            "product": request.product,
+            "topic": request.topic,
+            "channel": request.channel,
+            "reason": reason.strip() or "No reason supplied.",
+        }
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(event, sort_keys=True) + "\n")
         return path
 
     def run(
