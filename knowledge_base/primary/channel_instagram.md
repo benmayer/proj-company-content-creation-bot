@@ -14,7 +14,7 @@ Team editorial direction for Instagram drafts. It applies the platform cues in [
 
 ## Tone
 
-Playful, visual-first and self-aware. Relatable travel moments told in the first or second person ("me", "you"), with a punchline rather than an explanation.
+Lowercase, provocative, visual-first and self-aware; the punchline lands immediately. Relatable travel moments told in the first or second person ("me", "you").
 
 ## Format
 
@@ -22,7 +22,7 @@ A short caption built around one recognisable travel or flight moment. Never a d
 
 ## Post
 
-- A caption of one or two short lines, lowercase is fine.
+- A lowercase caption of one short sentence, usually 3–12 words, two short lines at most. Loose grammar is fine.
 - Describe the picture or moment the caption goes with in one line at the end, in square brackets: `[image: …]`.
 - No hashtags. No emoji.
 

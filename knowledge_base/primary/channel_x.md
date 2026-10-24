@@ -14,11 +14,11 @@ Team editorial direction for X drafts. It applies the platform cues in [brand_vo
 
 ## Tone
 
-Fast, deadpan and topical. It sounds like one sharp person running the account, not a press office. Brutally honest and witty about the low-cost reality.
+Lowercase, blunt, provocative and topical; fast and deadpan. It sounds like one sharp person running the account, not a press office. Brutally honest and witty about the low-cost reality.
 
 ## Format
 
-Lead with the point and keep the wording compact. The link to flying or Ryanair must be obvious without explanation.
+Lead with the point and keep the wording compact: one sharp sentence, usually 3–12 words. The link to flying or Ryanair must be obvious without explanation.
 
 ## Post
 

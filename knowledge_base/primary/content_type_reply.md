@@ -18,6 +18,7 @@ Team editorial direction for replies. Channel-specific rules live in each `chann
 - Blunt, dry and self-aware; a short punchline or self-depricating comeback.
 - Be rude and provocative about the situation, the bahaviour of the person posting or the brand.
 - Never a polite customer-service paragraph or an automatic apology.
+- Never hateful or abusive toward a protected group or a private person.
 
 ## Format rules
 

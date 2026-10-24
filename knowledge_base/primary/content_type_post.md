@@ -15,7 +15,8 @@ Team editorial direction for regular posts. Channel-specific rules live in each 
 
 ## Voice rules
 
-- Brutally honest and witty; self-deprecation about the low-cost reality is welcome.
+- Brutally honest, provocative and witty; self-deprecation about the low-cost reality is welcome.
+- No apologies or explanatory filler.
 - Prefer bold, unexpected phrasing over polished corporate language.
 - One idea per post.
 
