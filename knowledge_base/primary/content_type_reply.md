@@ -16,8 +16,8 @@ Team editorial direction for replies. Channel-specific rules live in each `chann
 ## Voice rules
 
 - Blunt, dry and self-aware; a short punchline or self-depricating comeback.
+- Be rude and provocative about the situation, the bahaviour of the person posting or the brand.
 - Never a polite customer-service paragraph or an automatic apology.
-- Be rude about the situation or the brand when funny.
 
 ## Format rules
 
