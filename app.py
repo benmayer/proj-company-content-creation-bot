@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import hashlib
 import hmac
 import os
+import time
 from html import escape
 from typing import Any, Optional
 
 import streamlit as st
+import streamlit.components.v1 as components
+from dotenv import load_dotenv
 
 from src.content_pipeline import ContentPipeline, ContentRequest, PipelineError
 from src.channel_profiles import CHANNELS, CONTENT_TYPES
@@ -15,6 +19,11 @@ from src.feedback_store import FeedbackStoreError
 from src.llm_integration import LLMError
 from src.knowledge_base import SelectedContext
 
+
+load_dotenv()  # the password gate reads APP_PASSWORD before any LLM call would load .env
+
+AUTH_COOKIE = "ryanair_auth"
+AUTH_DAYS = 7
 
 CONTENT_TYPE_LABELS = {"press_release": "press release", "post_update": "post update"}
 
@@ -132,6 +141,28 @@ def _decline() -> None:
     st.session_state["declined"] = reason
 
 
+def _auth_token(expected: str, expires: int) -> str:
+    """Signed ``<expiry>.<hmac>`` token; changing ``APP_PASSWORD`` invalidates every token."""
+    sig = hmac.new(expected.encode(), f"auth:{expires}".encode(), hashlib.sha256).hexdigest()
+    return f"{expires}.{sig}"
+
+
+def _valid_auth_token(token: str, expected: str) -> bool:
+    expires, _, _ = token.partition(".")
+    if not expires.isdigit() or int(expires) < time.time():
+        return False
+    return hmac.compare_digest(token.encode(), _auth_token(expected, int(expires)).encode())
+
+
+def _remember_login(expected: str) -> None:
+    """Store a signed token in a browser cookie so a reload does not ask for the password again."""
+    token = _auth_token(expected, int(time.time()) + AUTH_DAYS * 86400)
+    components.html(
+        f"<script>document.cookie = '{AUTH_COOKIE}={token}; max-age={AUTH_DAYS * 86400}; path=/; SameSite=Strict';</script>",
+        height=0,
+    )
+
+
 def _password_gate() -> bool:
     """Ask for the shared ``APP_PASSWORD`` before showing the app; True once unlocked.
 
@@ -144,12 +175,16 @@ def _password_gate() -> bool:
             st.error("APP_PASSWORD is not set on this service, so the app is locked.")
             return False
         return True
-    if st.session_state.get("unlocked"):
+    if st.session_state.get("unlocked") or _valid_auth_token(st.context.cookies.get(AUTH_COOKIE, ""), expected):
+        st.session_state["unlocked"] = True
+        if st.session_state.pop("set_cookie", False):
+            _remember_login(expected)
         return True
     entered = st.text_input("Password", type="password")
     if entered:
         if hmac.compare_digest(entered.encode(), expected.encode()):
             st.session_state["unlocked"] = True
+            st.session_state["set_cookie"] = True
             st.rerun()
         st.error("Wrong password.")
     return False
