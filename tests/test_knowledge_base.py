@@ -53,6 +53,90 @@ class KnowledgeBaseSelectionTests(unittest.TestCase):
         self.assertIn("promotion_pattern", {i.document.metadata["type"] for i in press_release.primary})
         self.assertIn("competitor_analysis", {i.document.metadata["type"] for i in reply.secondary})
 
+    def test_every_channel_and_content_type_has_a_profile_document(self) -> None:
+        from src.channel_profiles import (
+            CHANNELS, CONTENT_TYPES, channel_content_types, channel_type_rules, content_type_rules, get_channel_profile,
+        )
+        from src.prompt_templates import available_content_types
+
+        for channel in CHANNELS:
+            profile = get_channel_profile(channel)
+            self.assertTrue(profile.tone and profile.format)
+            self.assertTrue(profile.source.startswith("knowledge_base/primary/channel_"))
+            for content_type in channel_content_types(channel):
+                self.assertTrue(channel_type_rules(channel, content_type), f"{channel} {content_type}")
+        for content_type in CONTENT_TYPES:
+            self.assertTrue(content_type_rules(content_type))
+        self.assertEqual(set(CONTENT_TYPES), set(available_content_types()))
+
+    def test_channels_offer_the_agreed_content_types(self) -> None:
+        from src.channel_profiles import CHANNELS, channel_content_types, content_type_label
+
+        self.assertEqual(
+            {channel: channel_content_types(channel) for channel in CHANNELS},
+            {
+                "LinkedIn": ("post", "press_release"),
+                "Instagram": ("post", "reply", "meme"),
+                "X": ("post", "reply", "meme"),
+                "internal Slack": ("press_release", "post", "meme"),
+            },
+        )
+        self.assertEqual(content_type_label("press_release", "internal Slack"), "press release (internal)")
+        self.assertEqual(content_type_label("press_release", "LinkedIn"), "press release")
+        self.assertEqual(content_type_label("post"), "regular post")
+        self.assertEqual(content_type_label("reply"), "reply to post")
+
+    def test_profile_edits_apply_without_a_restart(self) -> None:
+        import shutil
+        import tempfile
+        from pathlib import Path
+
+        from src.channel_profiles import get_channel_profile
+        from src.knowledge_base import DEFAULT_ROOT
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "primary").mkdir()
+            shutil.copy(DEFAULT_ROOT / "primary" / "channel_x.md", root / "primary" / "channel_x.md")
+            self.assertIn("deadpan", get_channel_profile("X", root).tone)
+            path = root / "primary" / "channel_x.md"
+            path.write_text(path.read_text(encoding="utf-8").replace("deadpan", "EDITED"), encoding="utf-8")
+            self.assertIn("EDITED", get_channel_profile("X", root).tone)
+
+    def test_profile_documents_are_never_selected_as_topic_context(self) -> None:
+        ctx = self.kb.select("meme channel profile voice rules examples instagram x", "X", "meme")
+        types = {i.document.metadata["type"] for i in ctx.primary}
+        self.assertFalse(types & {"channel_profile", "content_type_profile", "channel_examples"})
+
+    def test_mentioning_ryanair_does_not_pull_in_every_document(self) -> None:
+        ctx = self.kb.select("ryanair delayed my flight again", "X", "reply")
+        self.assertEqual(
+            {i.document.metadata["type"] for i in ctx.primary},
+            {"brand_voice", "company_profile", "editorial_guardrails", "product_policy"},
+        )
+
+    def test_public_replies_and_memes_get_product_and_perception_background(self) -> None:
+        for channel, content_type in (("X", "reply"), ("Instagram", "reply"), ("X", "meme"), ("Instagram", "meme")):
+            with self.subTest(channel=channel, content_type=content_type):
+                ctx = self.kb.select("zzzz qqqq", channel, content_type)
+                self.assertIn("product_policy", {i.document.metadata["type"] for i in ctx.primary})
+                self.assertEqual(ctx.secondary[0].document.metadata["type"], "public_perception")
+
+    def test_press_releases_and_slack_never_get_the_background(self) -> None:
+        for channel, content_type in (("LinkedIn", "press_release"), ("internal Slack", "meme"), ("internal Slack", "post")):
+            with self.subTest(channel=channel, content_type=content_type):
+                ctx = self.kb.select("cabin bag fees and priority boarding", channel, content_type)
+                types = {i.document.metadata["type"] for i in ctx.primary + ctx.secondary}
+                self.assertFalse(types & {"product_policy", "public_perception"})
+
+    def test_generic_airline_words_do_not_pull_in_the_background(self) -> None:
+        topic = "Ryanair has flown 15 million passengers through Oslo Torp airport since 1997"
+        ctx = self.kb.select(topic, "LinkedIn", "post")
+        types = {i.document.metadata["type"] for i in ctx.primary + ctx.secondary}
+        self.assertFalse(types & {"product_policy", "public_perception"})
+        bags = self.kb.select("cabin bag sizes", "X", "post")
+        self.assertIn("product_policy", {i.document.metadata["type"] for i in bags.primary})
+
 
 if __name__ == "__main__":
     unittest.main()

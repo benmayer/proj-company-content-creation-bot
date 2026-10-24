@@ -15,7 +15,7 @@ from src.feedback_store import (
 
 
 def _record(store: FeedbackStore, outcome: str, draft: str = "d", reason: str = "", channel: str = "X", kind: str = "reply"):
-    return store.record(outcome, channel, kind, "flights", "topic", draft, reason)
+    return store.record(outcome, channel, kind, "topic", draft, reason)
 
 
 class FeedbackSelectionTests(unittest.TestCase):
@@ -48,6 +48,13 @@ class FeedbackSelectionTests(unittest.TestCase):
         self.store.backend.append('{"unexpected": 1}')
         self.assertEqual(len(self.store.events()), 1)
 
+    def test_lines_from_older_versions_still_load(self) -> None:
+        self.store.backend.append(
+            '{"outcome": "declined", "channel": "X", "content_type": "post_update", "product": "flights", '
+            '"topic": "t", "draft": "d", "reason": "old reason", "created_at": "2026-10-01T00:00:00+00:00"}'
+        )
+        self.assertEqual([e.reason for e in self.store.select("X", "post").declined], ["old reason"])
+
     def test_approved_example_drops_review_notes_and_is_truncated(self) -> None:
         _record(self.store, APPROVED, draft="Good post\n\nHUMAN REVIEW NOTES\n- check fares")
         rendered = self.store.select("X", "reply").render()
@@ -70,6 +77,8 @@ class FeedbackSelectionTests(unittest.TestCase):
         ):
             self.assertEqual(clean_draft(raw), "See you at the gate.", raw)
         self.assertEqual(clean_draft("Draft your bags early:\nand fly."), "Draft your bags early:\nand fly.")
+        self.assertEqual(clean_draft('"pack light, fly cheap."'), "pack light, fly cheap.")
+        self.assertEqual(clean_draft('"a" is not "b"'), '"a" is not "b"')
 
     def test_unknown_outcome_is_rejected(self) -> None:
         with self.assertRaises(FeedbackStoreError):

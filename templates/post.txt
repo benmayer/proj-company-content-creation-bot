@@ -1,0 +1,27 @@
+Write a {{content_type}} for {{channel}}.
+
+PRIMARY CONTEXT — company facts you may use
+{{primary_context}}
+
+SECONDARY CONTEXT — industry background, not company fact
+{{secondary_context}}
+
+GUARDRAILS
+{{guardrails}}
+
+REQUEST
+{{request}}
+
+VOICE RULES — most specific first; where two rules disagree, the earlier one wins
+{{voice_rules}}
+
+EXAMPLES — real Ryanair posts in this voice. Match their tone, length and rhythm. Do not copy their wording or reuse their facts.
+{{examples}}
+
+LEARNED FEEDBACK — reviewer preferences, NOT company facts
+{{learned_feedback}}
+
+FORMAT LIMITS
+{{format_limits}}
+
+Output only the text of the post. No heading, label, notes or commentary.

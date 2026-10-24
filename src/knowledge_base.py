@@ -25,13 +25,36 @@ SECONDARY = "secondary"
 
 # Primary documents every draft needs, whatever the topic.
 ALWAYS_PRIMARY_TYPES = ("brand_voice", "company_profile", "editorial_guardrails")
-# Secondary documents are only added when they overlap the topic.
+# Documents rendered in their own prompt blocks (VOICE RULES, GUARDRAILS), not under PRIMARY CONTEXT.
+BRAND_VOICE_TYPE = "brand_voice"
+GUARDRAILS_TYPE = "editorial_guardrails"
+VOICE_RULE_TYPES = (BRAND_VOICE_TYPE, GUARDRAILS_TYPE)
+# Team editorial profiles and verbatim channel examples, looked up by channel /
+# content type (see channel_profiles.py), never selected by topic.
+CHANNEL_PROFILE_TYPE = "channel_profile"
+CONTENT_TYPE_PROFILE_TYPE = "content_type_profile"
+CHANNEL_EXAMPLES_TYPE = "channel_examples"
+PROFILE_TYPES = (CHANNEL_PROFILE_TYPE, CONTENT_TYPE_PROFILE_TYPE, CHANNEL_EXAMPLES_TYPE)
+# What the product is really like and how passengers see it: the material public
+# replies and memes joke about. Always included for those; never for press releases
+# or internal Slack, which are not about the passenger experience; otherwise on a
+# topic match only (e.g. a post about cabin bags).
+BACKGROUND_TYPES = ("product_policy", "public_perception")
+ALWAYS_BACKGROUND_FOR = ("reply", "meme")
+NEVER_BACKGROUND_FOR = ("press_release",)
+NEVER_BACKGROUND_CHANNELS = ("internal slack",)
+# Secondary documents are only added when they overlap the topic (or are background).
 MAX_SECONDARY_DOCUMENTS = 2
 FALLBACK_SECONDARY_TYPE = "market_trends"
 
 _WORD_RE = re.compile(r"[a-z0-9]+")
+# "ryanair" is on every document, so it says nothing about the topic; matching on it
+# pulled every tagged document into every reply that mentions the airline. The same
+# goes for words almost every airline topic contains (an airport milestone release
+# matched the fee and reputation documents on "passengers" and "airport").
 _STOPWORDS = frozenset(
-    "a an and are as at be by for from how in into is it of on or our the to we with what why".split()
+    "a an and are as at be by for from how in into is it of on or our the to we with what why ryanair "
+    "passenger passengers airport airports flight flights".split()
 )
 
 
@@ -125,35 +148,55 @@ class KnowledgeBase:
         Primary: the always-needed brand and guardrail documents, plus any
         other primary document matching the topic or channel. Secondary: the
         best topic matches (up to MAX_SECONDARY_DOCUMENTS), falling back to
-        market trends so the secondary context is never empty. Source
-        provenance documents (``source_register``) are never injected.
+        market trends so the secondary context is never empty. Replies and
+        memes always get the product and public-perception background
+        (BACKGROUND_TYPES), which takes the first secondary slot; press
+        releases and internal Slack never do. Source
+        provenance documents (``source_register``), channel / content-type
+        profiles and channel examples are never selected here.
         """
 
         topic_words = _words(topic)
         match_words = topic_words | _words(channel or "")
+        type_key = (content_type or "").strip().lower().replace(" ", "_")
         type_words = {
             "reply": "customer feedback competitor response",
             "press_release": "announcement route promotion schedule investment",
-            "post_update": "update route promotion customer experience",
+            "post": "update route promotion customer experience",
             "meme": "social humour travel passenger",
-        }.get((content_type or "").strip().lower().replace(" ", "_"), "")
+        }.get(type_key, "")
         match_words |= _words(type_words)
+        channel_key = " ".join((channel or "").lower().split())
+        never_background = type_key in NEVER_BACKGROUND_FOR or channel_key in NEVER_BACKGROUND_CHANNELS
+        background = () if never_background or type_key not in ALWAYS_BACKGROUND_FOR else BACKGROUND_TYPES
+        skipped = BACKGROUND_TYPES if never_background else ()
 
         primary: List[SelectedDocument] = []
         for doc in self.primary:
+            if doc.metadata.get("type") in PROFILE_TYPES + skipped:
+                continue
             if doc.metadata.get("type") in ALWAYS_PRIMARY_TYPES:
                 primary.append(SelectedDocument(PRIMARY, doc, "always included"))
+            elif doc.metadata.get("type") in background:
+                primary.append(SelectedDocument(PRIMARY, doc, f"background for every {type_key}"))
             elif _score(doc, match_words) > 0:
                 primary.append(SelectedDocument(PRIMARY, doc, _matched(doc, match_words)))
 
-        candidates = [d for d in self.secondary if d.metadata.get("type") != "source_register"]
+        candidates = [
+            d for d in self.secondary if d.metadata.get("type") not in ("source_register",) + skipped
+        ]
+        pinned = [
+            SelectedDocument(SECONDARY, d, f"background for every {type_key}")
+            for d in candidates
+            if d.metadata.get("type") in background
+        ]
         ranked = sorted(
-            ((_score(d, topic_words | _words(type_words)), d) for d in candidates),
+            ((_score(d, topic_words | _words(type_words)), d) for d in candidates if d.metadata.get("type") not in background),
             key=lambda pair: (-pair[0], str(pair[1].source_path)),
         )
-        secondary = [
+        secondary = (pinned + [
             SelectedDocument(SECONDARY, d, _matched(d, topic_words)) for s, d in ranked if s > 0
-        ][:MAX_SECONDARY_DOCUMENTS]
+        ])[:MAX_SECONDARY_DOCUMENTS]
         if not secondary:
             secondary = [
                 SelectedDocument(SECONDARY, d, "fallback: no topic match")

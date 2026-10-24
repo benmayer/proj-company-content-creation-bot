@@ -74,6 +74,27 @@ class GenerateDraftTests(unittest.TestCase):
         self.assertEqual(kwargs["model"], "test-model")
         self.assertEqual(kwargs["messages"], [{"role": "user", "content": "Write a post"}])
 
+    def test_system_message_images_and_temperature_are_sent(self) -> None:
+        client = _client(text="ok")
+        generate_draft(
+            "Reply to this", client=client, system="You write Ryanair's content.",
+            images=[("image/png", b"\x89PNG")], temperature=0.9,
+        )
+        kwargs = client.chat.completions.create.call_args.kwargs
+        system, user = kwargs["messages"]
+        self.assertEqual(system, {"role": "system", "content": "You write Ryanair's content."})
+        self.assertEqual(user["content"][0], {"type": "text", "text": "Reply to this"})
+        self.assertEqual(user["content"][1]["image_url"]["url"], "data:image/png;base64,iVBORw==")
+        self.assertEqual(kwargs["temperature"], 0.9)
+
+    def test_temperature_is_dropped_when_the_model_rejects_it(self) -> None:
+        response = httpx.Response(400, request=REQUEST)
+        rejected = openai.BadRequestError("Unsupported value: 'temperature'", response=response, body=None)
+        client = _client(text="ok")
+        client.chat.completions.create.side_effect = [rejected, client.chat.completions.create.return_value]
+        self.assertEqual(generate_draft("prompt", client=client, temperature=1.0), "ok")
+        self.assertNotIn("temperature", client.chat.completions.create.call_args.kwargs)
+
     def test_empty_prompt_is_rejected_before_any_call(self) -> None:
         client = _client(text="x")
         with self.assertRaises(LLMError):

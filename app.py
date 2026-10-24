@@ -13,19 +13,19 @@ import streamlit as st
 import streamlit.components.v1 as components
 from dotenv import load_dotenv
 
-from src.content_pipeline import ContentPipeline, ContentRequest, PipelineError
-from src.channel_profiles import CHANNELS, CONTENT_TYPES
+from src.content_pipeline import CANNOT_READ_SCREENSHOT, ContentPipeline, ContentRequest, PipelineError, request_problem
+from src.channel_profiles import CHANNELS, channel_content_types, content_type_label
 from src.feedback_store import FeedbackStoreError
 from src.llm_integration import LLMError
 from src.knowledge_base import SelectedContext
 
 
+SCREENSHOT_TYPES = ["png", "jpg", "jpeg", "webp"]
+
 load_dotenv()  # the password gate reads APP_PASSWORD before any LLM call would load .env
 
 AUTH_COOKIE = "ryanair_auth"
 AUTH_DAYS = 7
-
-CONTENT_TYPE_LABELS = {"press_release": "press release", "post_update": "post update"}
 
 
 def _draft_box(draft: str) -> None:
@@ -45,33 +45,22 @@ def _source_names(context: SelectedContext) -> list[str]:
     ]
 
 
-def _read_asset(uploaded_file: Any) -> tuple[str, str]:
-    if uploaded_file is None:
-        return "", ""
-    asset_name = uploaded_file.name
-    if uploaded_file.type == "text/plain":
-        return asset_name, uploaded_file.getvalue().decode("utf-8", errors="replace")
-    return asset_name, "(Binary asset retained in memory; inspect it during human review.)"
-
-
-def _request_from_form(channel: str, content_type: str, product: str, topic: str, original: str, asset: Any) -> ContentRequest:
-    asset_name, asset_text = _read_asset(asset)
+def _request_from_form(channel: str, content_type: str, topic: str, original: str, screenshot: Any) -> ContentRequest:
     is_reply = content_type == "reply"
     return ContentRequest(
-        content_type=content_type.replace(" ", "_"),
-        product="" if is_reply else product,
-        topic="" if is_reply else f"{content_type}: {topic}",
+        content_type=content_type,
+        topic="" if is_reply else topic,
         channel=channel,
-        original_content=original,
-        asset_name=asset_name,
-        asset_text=asset_text,
+        original_content=original if is_reply else "",
+        screenshot=screenshot.getvalue() if is_reply and screenshot is not None else b"",
+        screenshot_type=screenshot.type if is_reply and screenshot is not None else "",
     )
 
 
 def _generate(request: ContentRequest) -> None:
     pipeline = ContentPipeline()
-    context = pipeline.monitor(request)
     try:
+        context = pipeline.monitor(request)
         draft = pipeline.draft(request, context)
     except (LLMError, PipelineError, RuntimeError) as exc:
         st.session_state["error"] = str(exc)
@@ -201,27 +190,35 @@ def main() -> None:
         st.header("Request")
         channel = st.selectbox("Channel", CHANNELS)
         content_type = st.selectbox(
-            "Type", CONTENT_TYPES, format_func=lambda value: CONTENT_TYPE_LABELS.get(value, value)
+            "Type",
+            channel_content_types(channel),
+            format_func=lambda value: content_type_label(value, channel).capitalize(),
         )
         is_reply = content_type == "reply"
-        product = topic = original = ""
+        topic = original = ""
+        screenshot = None
         if is_reply:
-            original = st.text_area("Original post or message", height=160)
+            screenshot = st.file_uploader("Screenshot of the post", type=SCREENSHOT_TYPES)
+            if screenshot is not None:
+                st.image(screenshot, width="stretch")
+            original = st.text_area(
+                "Or paste the post's text", height=120, help="Links aren't opened; paste the text or upload a screenshot."
+            )
         else:
-            product = st.text_input("Product or service", placeholder="e.g. flights")
             topic = st.text_area("Topic", placeholder="What should the content communicate?")
-        asset = st.file_uploader("Optional asset", type=["txt", "png", "jpg", "jpeg", "pdf"])
         if st.button("Generate", type="primary", use_container_width=True):
-            if is_reply and not original.strip():
-                st.session_state["error"] = "Paste the original post or message to reply to."
-            elif not is_reply and (not product.strip() or not topic.strip()):
-                st.session_state["error"] = "Product and topic are required."
+            request = _request_from_form(channel, content_type, topic, original, screenshot)
+            problem = request_problem(request)
+            if problem:
+                st.session_state["error"] = problem
             else:
-                _generate(_request_from_form(channel, content_type, product, topic, original, asset))
+                _generate(request)
 
     st.subheader("Draft")
     if st.session_state.get("draft"):
         _draft_box(st.session_state["draft"])
+        if st.session_state["draft"].strip() == CANNOT_READ_SCREENSHOT:
+            st.warning("The model could not read the screenshot. Try a sharper crop, or paste the post's text.")
         st.session_state["feedback"] = st.text_area("Give feedback", value=st.session_state.get("feedback", ""), height=100)
         revise, approve, decline = st.columns(3)
         with revise:
@@ -233,7 +230,10 @@ def main() -> None:
         if st.session_state.get("saved_path"):
             st.success(f"Approved draft saved to `{st.session_state['saved_path']}`")
         if st.session_state.get("declined"):
-            st.info(f"Declined. Later {channel} {content_type} drafts will take this into account: {st.session_state['declined']}")
+            st.info(
+                f"Declined. Later {channel} {content_type_label(content_type, channel)} drafts "
+                f"will take this into account: {st.session_state['declined']}"
+            )
     else:
         st.info("Complete the request form and select Generate.")
     if st.session_state.get("error"):
@@ -242,10 +242,16 @@ def main() -> None:
     summary, sources = st.columns(2)
     with summary:
         st.subheader("Request summary")
+        label = content_type_label(content_type, channel)
         st.write(
-            {"channel": channel, "type": content_type, "original message": original}
+            {
+                "channel": channel,
+                "type": label,
+                "post to reply to": original,
+                "screenshot": screenshot.name if screenshot is not None else "none",
+            }
             if is_reply
-            else {"channel": channel, "type": content_type, "product": product, "topic": topic}
+            else {"channel": channel, "type": label, "topic": topic}
         )
     with sources:
         context: Optional[SelectedContext] = st.session_state.get("context")

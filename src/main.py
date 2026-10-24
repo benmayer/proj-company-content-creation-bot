@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import mimetypes
 import sys
 from pathlib import Path
 from typing import List, Optional
@@ -12,23 +13,36 @@ from typing import List, Optional
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from src.content_pipeline import ContentPipeline, ContentRequest, PipelineError
+from src.content_pipeline import ContentPipeline, ContentRequest, PipelineError, request_problem
 from src.channel_profiles import CHANNELS, CONTENT_TYPES
 
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Create a reviewable company content draft.")
-    parser.add_argument("--content-type", choices=CONTENT_TYPES + ("social_post", "campaign_brief"), required=True)
-    parser.add_argument("--product", required=True)
-    parser.add_argument("--topic", required=True)
+    parser.add_argument("--content-type", choices=CONTENT_TYPES, required=True)
     parser.add_argument("--channel", choices=CHANNELS, default="LinkedIn")
+    parser.add_argument("--topic", default="", help="What the content should communicate (not for replies).")
+    parser.add_argument("--original", default="", help="Reply only: the text of the post to reply to.")
+    parser.add_argument("--screenshot", type=Path, help="Reply only: a screenshot of the post to reply to.")
     return parser
+
+
+def _request(args: argparse.Namespace) -> ContentRequest:
+    screenshot, screenshot_type = b"", ""
+    if args.screenshot:
+        screenshot = args.screenshot.read_bytes()
+        screenshot_type = mimetypes.guess_type(args.screenshot.name)[0] or ""
+    return ContentRequest(args.content_type, args.topic, args.channel, args.original, screenshot, screenshot_type)
 
 
 def main(argv: Optional[List[str]] = None) -> int:
     args = _build_parser().parse_args(argv)
+    request = _request(args)
+    problem = request_problem(request)
+    if problem:
+        print(problem)
+        return 2
     pipeline = ContentPipeline()
-    request = ContentRequest(args.content_type, args.product, args.topic, args.channel)
     print("Generating draft for human review...\n")
     try:
         result = pipeline.run(

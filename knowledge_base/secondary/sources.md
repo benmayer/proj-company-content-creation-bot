@@ -35,9 +35,19 @@ Gathered on 2026-10-22 through web search; two pages were read in full by fetch 
 - Which? via FTN News: https://ftnnews.com/travel-news/aviation/which-finds-lowest-advertised-cabin-bag-fees-rarely-available-on-budget-airlines/
 - Majorca Daily Bulletin, 16 July 2025: https://amp.majorcadailybulletin.com/holiday/travelling/2025/07/16/134799/survey-reveals-travelers-feel-misled-low-cost-airlines-flying-mallorca-like-ryanair-over-hidden-fees.html (methodology unverified).
 
+## Public perception (added 2026-10-23)
+
+- **read** Which?, "What to watch out for when booking Ryanair", 6 Feb 2026: https://www.which.co.uk/reviews/airlines/article/what-to-watch-out-for-when-booking-ryanair-ayB6X5C1ZMoc (booking-flow defaults, bundle checks, gate bag fees, seat-split survey, Ryanair's responses). Advocacy source.
+- **read** Which?, best and worst airlines press release, 27 Feb 2026: https://www.which.co.uk/policy-and-insight/article/which-reveals-the-uks-best-and-worst-airlines-for-customer-satisfaction-as-add-on-fees-cast-doubt-on-budget-carrier-value-claims-abI2T2U2G87L (Ryanair 55%, star ratings, customer quote, Ryanair statement). Unweighted, not representative.
+- **read** Adventure.com, "How Ryanair is using social media to keep you coming back for more", Kassondra Cloos, 18 Apr 2024: https://adventure.com/?p=49655 ("never again", Ryanair TikTok lines).
+- Travel Extra, gate-staff bag bonus, July 2025: https://www.travelextra.ie/ryanair-to-increase-rewards-for-gate-staff-who-detect-outsize-baggage-from-e1-50-to-e2-50-in-november/ (summary only; whether the €2.50 rate took effect is unconfirmed).
+- PPC Land, "Is Ryanair going soft?": https://ppc.land/is-ryanair-going-soft-the-sarcasm-that-built-a-brand-may-be-fading/ (summary only; opinion).
+- Gain, Ryanair social media strategy: https://blog.gainapp.com/ryanair-social-media-strategy/ (summary only; marketing blog, used for the "criticism becomes content" framing).
+
 # Known weaknesses
 
 - No official Wizz Air or easyJet filing was read directly.
 - Skift article not read in full.
 - Passenger-rights reform status and the AGCM appeal may have changed since retrieval.
 - Nothing on Wizz Air's social media style; deliberately left out.
+- Ryanair's help-centre pages block automated reading; fares_and_extras.md (primary) uses search-result excerpts of them.
